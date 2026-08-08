@@ -3,371 +3,808 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI 訪問資料ジェネレーター (Gamma Style)</title>
-<!-- PptxGenJS CDN -->
-<script src="https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<title>訪問資料ジェネレーター</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.bundle.js"></script>
 <style>
-  :root {
-    --bg-dark: #0b0f17;
-    --panel-dark: #151c28;
-    --card-dark: #1e293b;
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-    --accent-purple: #818cf8;
-    --accent-pink: #c084fc;
-    --accent-blue: #38bdf8;
-    --border-color: #334155;
+  :root{
+    --bg:#f4f5f7; --panel:#ffffff; --ink:#1a1a1a; --sub:#6b7280; --line:#e5e7eb;
+    --accent:#d61c2e; /* red-corporate */
   }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;background:var(--bg);color:var(--ink);}
+  header{background:#111827;color:#fff;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+  header h1{font-size:17px;margin:0;font-weight:700;letter-spacing:.02em;}
+  header .cfg{font-size:12px;color:#9ca3af;}
+  header input{background:#1f2937;border:1px solid #374151;color:#fff;border-radius:6px;padding:5px 8px;font-size:12px;width:260px;}
+  main{max-width:1180px;margin:0 auto;padding:24px 20px 80px;}
+  .panel{background:var(--panel);border-radius:12px;padding:20px 22px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+  .panel h2{font-size:14px;margin:0 0 12px;color:#374151;font-weight:700;display:flex;align-items:center;gap:6px;}
+  .panel h2 .num{background:var(--ink);color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;}
+  textarea{width:100%;min-height:160px;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:13px;font-family:inherit;resize:vertical;}
+  .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;}
+  .tpl-card{flex:1;min-width:180px;border:2px solid var(--line);border-radius:10px;padding:14px;cursor:pointer;transition:.15s;}
+  .tpl-card.active{border-color:var(--ink);box-shadow:0 0 0 3px rgba(0,0,0,.06);}
+  .tpl-swatch{height:56px;border-radius:6px;margin-bottom:10px;}
+  .tpl-swatch.tpl-red{background:linear-gradient(135deg,#fff 55%,#d61c2e 55%);border:1px solid var(--line);}
+  .tpl-swatch.tpl-navy{background:linear-gradient(135deg,#0f2a4a 45%,#eef2f7 45%);}
+  .tpl-swatch.tpl-mono{background:linear-gradient(135deg,#f3f4f6 50%,#1a1a1a 50%);}
+  .tpl-card .name{font-weight:700;font-size:13px;}
+  .tpl-card .desc{font-size:11px;color:var(--sub);margin-top:2px;}
+  .co-card{flex:1;min-width:200px;}
+  .co-card .name{font-weight:800;font-size:13px;}
+  .co-card .tagline{font-size:11px;color:var(--sub);margin-top:3px;line-height:1.5;}
+  .section-label{font-size:11px;color:var(--sub);font-weight:700;margin:16px 0 4px;}
+  .review-badge{display:inline-block;padding:6px 14px;border-radius:6px;font-weight:800;font-size:13px;margin-right:10px;}
+  .review-badge.ok{background:#dcfce7;color:#166534;}
+  .review-badge.warn{background:#fef9c3;color:#854d0e;}
+  .review-badge.ng{background:#fee2e2;color:#991b1b;}
+  .review-score{font-size:22px;font-weight:900;}
+  .review-block{margin-top:16px;}
+  .review-block h3{font-size:12px;color:#374151;margin:0 0 8px;font-weight:700;}
+  .review-block ul{margin:0;padding-left:18px;font-size:13px;line-height:1.8;}
+  .review-block.critical ul li{color:#991b1b;}
+  .review-page{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:8px;}
+  .review-page .p-title{font-size:12px;font-weight:700;color:#374151;margin-bottom:4px;}
+  .fix-item{background:#f8f9fb;border-left:3px solid #111827;padding:8px 12px;margin-bottom:6px;font-size:13px;}
+  .outline-item{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:8px;background:#f8f9fb;}
+  .outline-item .oi-num{font-size:11px;color:var(--sub);font-weight:700;width:20px;flex-shrink:0;}
+  .outline-item [contenteditable]{flex:1;font-size:13px;padding:2px 4px;border-radius:4px;}
+  .outline-item [contenteditable]:hover{background:rgba(214,28,46,.06);}
+  .btn{border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;}
+  .btn-primary{background:var(--ink);color:#fff;}
+  .btn-primary:hover{background:#000;}
+  .btn-outline{background:#fff;border:1px solid var(--line);color:var(--ink);}
+  .btn-outline:hover{background:#f3f4f6;}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+  .toolbar{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;align-items:center;}
+  .status{font-size:12px;color:var(--sub);}
 
-  body.light-mode {
-    --bg-dark: #f8fafc;
-    --panel-dark: #ffffff;
-    --card-dark: #f1f5f9;
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-    --border-color: #e2e8f0;
+  #editorSection{display:none;}
+  .slide-card{background:#f8f9fb;border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:16px;}
+  .slide-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .slide-card-head .tag{font-size:11px;color:var(--sub);font-weight:700;}
+  .mini-btn{border:1px solid var(--line);background:#fff;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;margin-left:4px;}
+  .mini-btn:hover{background:#f3f4f6;}
+
+  /* ===== Slide preview stage (16:9) ===== */
+  .stage{width:100%;aspect-ratio:16/9;background:#fff;border-radius:6px;overflow:hidden;position:relative;box-shadow:0 0 0 1px var(--line);}
+  .stage-inner{position:absolute;inset:0;padding:6.5% 7%;display:flex;flex-direction:column;}
+  [contenteditable]{outline:none;}
+  [contenteditable]:hover{background:rgba(214,28,46,.06);}
+  [contenteditable]:focus{background:rgba(214,28,46,.10);}
+
+  /* --- template: red-corporate --- */
+  .tpl-red .stage-title{font-size:1.9em;font-weight:900;line-height:1.35;color:#1a1a1a;}
+  .tpl-red .stage-sub{font-size:.85em;color:#6b7280;margin-top:6px;}
+  .tpl-red .stage-bar{width:44px;height:5px;background:#d61c2e;margin:14px 0 16px;}
+  .tpl-red .stage-bullets{font-size:.95em;line-height:1.9;color:#2b2b2b;}
+  .tpl-red .stage-bullets li{margin-bottom:4px;}
+  .tpl-red .stage-bullets li::marker{color:#d61c2e;}
+  .tpl-red .stage-tag{font-size:.7em;font-weight:700;color:#d61c2e;letter-spacing:.08em;}
+  .tpl-red .stage-foot{position:absolute;bottom:5%;right:6%;font-size:.55em;color:#9ca3af;}
+  .tpl-red .stage-hex{position:absolute;right:5%;bottom:8%;width:60px;height:60px;background:conic-gradient(#d61c2e 0 25%,#111827 25% 50%,#d61c2e 50% 75%,#111827 75% 100%);clip-path:polygon(25% 5%,75% 5%,100% 50%,75% 95%,25% 95%,0 50%);opacity:.9;}
+
+  /* --- template: navy-tech --- */
+  .tpl-navy .stage-inner{padding:0;}
+  .tpl-navy .stage-headerbar{background:#0f2a4a;color:#fff;padding:5% 7% 4%;display:flex;align-items:center;gap:14px;}
+  .tpl-navy .stage-badge{background:#fff;color:#0f2a4a;font-weight:900;border-radius:8px;padding:4px 12px;font-size:1.1em;}
+  .tpl-navy .stage-title{font-size:1.5em;font-weight:800;}
+  .tpl-navy .stage-body{padding:5% 7%;flex:1;}
+  .tpl-navy .stage-sub{font-size:.8em;color:#0f2a4a;font-weight:700;margin-bottom:10px;}
+  .tpl-navy .stage-bullets{font-size:.9em;line-height:1.85;color:#1f2937;}
+  .tpl-navy .stage-bullets li::marker{color:#0f2a4a;}
+  .tpl-navy .stage-foot{position:absolute;bottom:4%;right:6%;font-size:.55em;color:#9ca3af;}
+
+  /* --- template: mono-minimal --- */
+  .tpl-mono .stage-title{font-size:1.7em;font-weight:700;color:#111827;border-bottom:2px solid #111827;padding-bottom:10px;}
+  .tpl-mono .stage-sub{font-size:.8em;color:#6b7280;margin-top:8px;}
+  .tpl-mono .stage-bullets{font-size:.9em;line-height:1.9;color:#374151;margin-top:16px;}
+  .tpl-mono .stage-bullets li::marker{color:#9ca3af;}
+  .tpl-mono .stage-foot{position:absolute;bottom:5%;right:6%;font-size:.55em;color:#9ca3af;}
+
+  @media print{
+    body *{visibility:hidden;}
+    #printArea, #printArea *{visibility:visible;}
+    #printArea{position:absolute;left:0;top:0;width:100%;}
+    .print-page{width:297mm;height:167mm;page-break-after:always;position:relative;}
   }
-
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: var(--bg-dark);
-    color: var(--text-main);
-    transition: background 0.3s, color 0.3s;
-    padding-bottom: 80px;
-  }
-
-  header {
-    background: var(--panel-dark);
-    border-bottom: 1px solid var(--border-color);
-    padding: 16px 32px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  header h1 {
-    font-size: 18px; margin: 0; font-weight: 800;
-    background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  }
-  
-  main { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
-
-  .panel {
-    background: var(--panel-dark);
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  }
-
-  textarea {
-    width: 100%;
-    height: 160px;
-    background: var(--bg-dark);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 16px;
-    color: var(--text-main);
-    font-size: 14px;
-    line-height: 1.6;
-    outline: none;
-    transition: border 0.2s;
-  }
-  textarea:focus { border-color: var(--accent-purple); }
-
-  .controls { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
-  .btn-group { display: flex; gap: 10px; }
-
-  .btn {
-    background: linear-gradient(135deg, var(--accent-purple), #6366f1);
-    color: #fff;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: transform 0.1s, opacity 0.2s;
-  }
-  .btn:hover { opacity: 0.9; transform: translateY(-1px); }
-  .btn-secondary { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); }
-
-  .theme-toggle { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--text-muted); }
-  .theme-btn { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
-  .theme-btn.active { border-color: var(--accent-purple); }
-
-  /* Canvas (Gamma Deck View) */
-  #presentationCanvas { margin-top: 40px; display: flex; flex-direction: column; gap: 32px; }
-
-  .gamma-card {
-    background: var(--panel-dark);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 36px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .gamma-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 4px;
-    background: linear-gradient(90deg, var(--accent-purple), var(--accent-pink), var(--accent-blue));
-  }
-
-  .card-badge { font-size: 11px; font-weight: 800; color: var(--accent-purple); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 12px; display: block; }
-  
-  .card-title {
-    font-size: 24px;
-    font-weight: 800;
-    margin: 0 0 20px 0;
-    color: var(--text-main);
-    outline: none;
-  }
-
-  .card-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 16px;
-  }
-
-  .grid-box {
-    background: var(--card-dark);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 20px;
-    transition: border-color 0.2s;
-  }
-  .grid-box:hover { border-color: var(--accent-purple); }
-
-  .grid-box h4 { margin: 0 0 10px 0; font-size: 15px; color: var(--accent-purple); outline: none; }
-  .grid-box ul { margin: 0; padding-left: 18px; color: var(--text-muted); font-size: 13px; line-height: 1.7; }
-  .grid-box li { outline: none; margin-bottom: 4px; }
-
+  #printArea{display:none;}
 </style>
 </head>
 <body>
 
 <header>
-  <h1>✨ Gamma AI Presentation Generator</h1>
-  <div class="theme-toggle">
-    <span>テーマ:</span>
-    <div class="theme-btn active" style="background:#0b0f17;" onclick="toggleTheme('dark', this)"></div>
-    <div class="theme-btn" style="background:#f8fafc;" onclick="toggleTheme('light', this)"></div>
+  <h1>📊 訪問資料ジェネレーター（β）</h1>
+  <div class="cfg">
+    GASエンドポイント：
+    <input id="gasUrl" placeholder="https://script.google.com/macros/s/.../exec（未設定なら簡易生成で動作）">
   </div>
 </header>
 
 <main>
   <div class="panel">
-    <h2 style="margin-top:0; font-size:16px;">AI プレゼンスライド自動生成プロンプト</h2>
-    <textarea id="promptInput" placeholder="訪問メモや提案内容をそのまま貼り付けてください。AIが自動解析してスライド構造化します。
+    <h2><span class="num">1</span>プロンプトを入力</h2>
+    <textarea id="notesInput" placeholder="例）A社（産業機械メーカー）向けの提案資料。既存の粉体成型機の外装デザイン刷新の提案。予算感300〜500万円、納期は年内希望。デザインだけでなく筐体設計・量産まで一貫対応できる点を訴求したい。真空注型による小ロット試作から量産までの流れを含めてほしい。"></textarea>
 
-例）8/8 A社訪問。担当：田中様。
-課題：既存の粉体成型機の外装が古く、展示会での見栄えが悪いと相談。
-提案：デザインだけでなく筐体設計・量産まで一貫対応できる点に興味あり。
-条件：予算感は300〜500万円、納期は年内希望。
-次アクション：見積提出、9月頭に再訪問。"></textarea>
+    <div class="section-label">資料の種類</div>
+    <div class="row">
+      <div class="tpl-card dt-card active" data-dt="proposal">
+        <div class="name">提案資料</div>
+        <div class="desc">訪問前に作る提案書。課題仮説→提案→進め方・見積条件の構成</div>
+      </div>
+      <div class="tpl-card dt-card" data-dt="report">
+        <div class="name">訪問報告</div>
+        <div class="desc">訪問後の記録・社内共有用。概要→課題→提案→ネクストアクション</div>
+      </div>
+      <div class="tpl-card dt-card" data-dt="seminar">
+        <div class="name">セミナー資料</div>
+        <div class="desc">展示会・セミナー向け。課題提起→ソリューション→事例→CTA</div>
+      </div>
+    </div>
 
-    <div class="controls">
-      <div class="btn-group">
-        <button class="btn" onclick="generateDeck()">✨ AIスライドを生成する</button>
+    <div class="section-label">発信元（グループ会社）</div>
+    <div class="row">
+      <div class="tpl-card co-card active" data-co="crosseffect">
+        <div class="name">クロスエフェクト</div>
+        <div class="tagline">世界最速の開発支援企業。試作・小ロット生産・アジャイル開発が主軸。業界横断で提案する時のデフォルト。</div>
       </div>
-      <div class="btn-group">
-        <button class="btn btn-secondary" id="exportBtn" style="display:none;" onclick="exportPPTX()">📥 PowerPoint (.pptx) を出力</button>
+      <div class="tpl-card co-card" data-co="crossdesign">
+        <div class="name">クロスデザイン</div>
+        <div class="tagline">デザインで終わらせない、価値を生むプロダクト開発パートナー。意匠・筐体設計・CG/XRが刺さる相手向け。</div>
       </div>
+      <div class="tpl-card co-card" data-co="crossmedical">
+        <div class="name">クロスメディカル</div>
+        <div class="tagline">心臓・臓器モデル／医療系試作。医療機関・医療機器メーカー向け商談で選択。</div>
+      </div>
+    </div>
+
+    <div class="section-label">デザインテンプレート</div>
+    <div class="row">
+      <div class="tpl-card active" data-tpl="tpl-red">
+        <div class="tpl-swatch tpl-red"></div>
+        <div class="name">レッド・コーポレート</div>
+        <div class="desc">crossDesign会社案内と同系統。堅め・製造業向け</div>
+      </div>
+      <div class="tpl-card" data-tpl="tpl-navy">
+        <div class="tpl-swatch tpl-navy"></div>
+        <div class="name">ネイビー・テック</div>
+        <div class="desc">IT・DX寄りの提案に。数字・ステップ訴求向き</div>
+      </div>
+      <div class="tpl-card" data-tpl="tpl-mono">
+        <div class="tpl-swatch tpl-mono"></div>
+        <div class="name">ミニマル・モノクロ</div>
+        <div class="desc">社内共有・簡易報告など軽めの用途に</div>
+      </div>
+    </div>
+    <div class="section-label">生成コントロール</div>
+    <div class="row" style="align-items:flex-end;">
+      <div style="min-width:140px;">
+        <label style="font-size:11px;color:var(--sub);">カード枚数</label>
+        <select id="cardCount" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;">
+          <option value="auto" selected>おまかせ（4〜7枚）</option>
+          <option value="5">5枚</option>
+          <option value="7">7枚</option>
+          <option value="9">9枚</option>
+        </select>
+      </div>
+      <div style="min-width:140px;">
+        <label style="font-size:11px;color:var(--sub);">文字量</label>
+        <select id="density" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;">
+          <option value="short">簡潔（要点のみ）</option>
+          <option value="standard" selected>標準</option>
+          <option value="detailed">詳しく</option>
+        </select>
+      </div>
+      <div style="min-width:140px;">
+        <label style="font-size:11px;color:var(--sub);">口調</label>
+        <select id="tone" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;">
+          <option value="polite" selected>です・ます調</option>
+          <option value="plain">である調</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button class="btn btn-primary" id="outlineBtn">① まずアウトラインを作成</button>
+      <button class="btn btn-outline" id="genBtn">アウトラインをスキップして直接生成</button>
+      <span class="status" id="genStatus"></span>
     </div>
   </div>
 
-  <div id="presentationCanvas"></div>
+  <div class="panel" id="outlineSection" style="display:none;">
+    <h2><span class="num">2</span>アウトラインを確認・編集</h2>
+    <p style="font-size:12px;color:var(--sub);margin:0 0 10px;">見出しだけの構成案です。順番の入れ替え・追加・削除・文言修正をしてから本文を生成してください。</p>
+    <div id="outlineList"></div>
+    <div class="toolbar">
+      <button class="btn btn-outline" id="outlineAddBtn">＋ 見出しを追加</button>
+      <button class="btn btn-primary" id="expandBtn">② この構成で本文を生成</button>
+      <span class="status" id="outlineStatus"></span>
+    </div>
+  </div>
+
+  <div class="panel" id="editorSection">
+    <h2><span class="num">3</span>内容を確認・編集（クリックで直接編集できます）</h2>
+    <div id="slideList"></div>
+    <div class="toolbar">
+      <button class="btn btn-outline" id="addSlideBtn">＋ スライドを追加</button>
+    </div>
+  </div>
+
+  <div class="panel" id="refineSection" style="display:none;">
+    <h2><span class="num">4</span>追加のお願い（AIに再指示して反映）</h2>
+    <textarea id="refineInput" style="min-height:80px;" placeholder="例）見積セクションをもっと具体的に。納期をもう少し強調して。競合との差別化ポイントを1枚追加して。"></textarea>
+    <div class="toolbar">
+      <button class="btn btn-outline" id="refineBtn">追加要望を反映して再生成</button>
+      <span class="status" id="refineStatus"></span>
+    </div>
+  </div>
+
+  <div class="panel" id="reviewSection" style="display:none;">
+    <h2><span class="num">5</span>提出前の厳格チェック</h2>
+    <p style="font-size:12px;color:var(--sub);margin:0 0 10px;">
+      誤字脱字・金額計算・ページ間の矛盾・仕様/成果物/見積範囲・納期・検証条件・合格基準・追加費用条件・責任範囲・過剰な保証表現などを、
+      現在のスライド本文ベースで厳しく照合します（推測はしません）。<br>
+      ※レイアウト崩れ・実際のPDFの見た目までは判定できないため、書き出したPPTX/PDFは別途目視確認してください。
+    </p>
+    <div class="toolbar">
+      <button class="btn btn-outline" id="reviewBtn">厳格チェックを実行</button>
+      <span class="status" id="reviewStatus"></span>
+    </div>
+    <div id="reviewResult"></div>
+  </div>
+
+  <div class="panel" id="exportSection" style="display:none;">
+    <h2><span class="num">6</span>出力</h2>
+    <div class="toolbar">
+      <button class="btn btn-primary" id="exportPptxBtn">PowerPoint (.pptx) を書き出す</button>
+      <button class="btn btn-outline" id="exportPdfBtn">PDFで印刷・保存</button>
+    </div>
+  </div>
 </main>
 
+<div id="printArea"></div>
+
 <script>
-let deckData = [];
+const TEMPLATES = {
+  'tpl-red':  { label:'レッド・コーポレート', bg:'FFFFFF', accent:'D61C2E', ink:'1A1A1A', sub:'6B7280', bodyText:'2B2B2B' },
+  'tpl-navy': { label:'ネイビー・テック',     bg:'FFFFFF', accent:'0F2A4A', ink:'0F2A4A', sub:'6B7280', bodyText:'1F2937' },
+  'tpl-mono': { label:'ミニマル・モノクロ',   bg:'FFFFFF', accent:'111827', ink:'111827', sub:'6B7280', bodyText:'374151' }
+};
 
-function toggleTheme(mode, btn) {
-  document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  if (mode === 'light') {
-    document.body.classList.add('light-mode');
-  } else {
-    document.body.classList.remove('light-mode');
+// 各グループ会社の実際の事業内容・強み（AIへの要約指示のコンテキストにも使用）
+const COMPANIES = {
+  crosseffect: {
+    key:'crosseffect', name:'株式会社クロスエフェクト', short:'クロスエフェクト', tagShort:'CROSS EFFECT',
+    tagline:'世界最速の開発支援企業',
+    facts:'2001年8月設立／京都市伏見区／代表 竹田正俊／事業内容：プロダクトデザイン・樹脂筐体設計、3Dスキャニング、光造形による3D開発試作、真空注型、小ロット生産、医療系ものづくり・臓器モデル・CTスキャンサービス。ミッションは「速さを追求し、世界の開発案件を支援」。アジャイル開発により開発期間を圧縮し、コスト低減・問題の早期発見を実現。クロスデザイン・クロスメディカルのグループ親会社。'
+  },
+  crossdesign: {
+    key:'crossdesign', name:'株式会社クロスデザイン', short:'クロスデザイン', tagShort:'CROSS DESIGN',
+    tagline:'デザインで終わらせない、市場で価値を生むプロダクトまで創る',
+    facts:'2022年6月設立／クロスエフェクトのグループ会社／事業内容：プロダクトデザイン、筐体設計、3Dモデリング、リバースエンジニアリング、CG動画制作、XR(VR)関連。Digital・Design・筐体設計（Mechanical）を融合し、構想から量産・価値化・進化までを一貫対応。Rapid Designによる高速デザインが強み。GOOD DESIGN賞受賞実績多数。'
+  },
+  crossmedical: {
+    key:'crossmedical', name:'株式会社クロスメディカル', short:'クロスメディカル', tagShort:'CROSS MEDICAL',
+    tagline:'精度の高い心臓・臓器モデルで医療を支える',
+    facts:'クロスエフェクトのグループ会社／事業内容：心臓モデル・各種臓器モデルの製造販売、医療系試作、メディカルデバイスの試作。CTスキャンデータを立体化し、柔らかい3Dモデルで術前トレーニングを可能にする。国立循環器病センター内「オープンイノベーションラボ」入居。AMED事業として心臓シミュレータープロジェクトを推進、若手外科医の育成に貢献。'
   }
+};
+
+let state = {
+  template: 'tpl-red',
+  companyKey: 'crosseffect',
+  companyName: COMPANIES.crosseffect.name,
+  docType: 'proposal',
+  slides: [],
+  outline: []
+};
+
+function getGenControls(){
+  return {
+    cardCount: document.getElementById('cardCount').value,
+    density: document.getElementById('density').value,
+    tone: document.getElementById('tone').value
+  };
 }
 
-/* ========================================================
-   クライアントサイド テキスト解析エンジン (要約・構造化)
-======================================================== */
-function parseTextToDeck(text) {
-  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-  
-  // キーワード抽出・分類ロジック
-  let companyOrClient = "訪問先企業";
-  let person = "";
-  let issues = [];
-  let proposals = [];
-  let conditions = [];
-  let nextActions = [];
-  let generalNotes = [];
-
-  lines.forEach(line => {
-    // 会社名・担当者
-    if (line.includes("訪問") || line.includes("社") || line.includes("担当")) {
-      const mPerson = line.match(/担当[:：]?\s*([^\s,、。]+)/);
-      if (mPerson) person = mPerson[1];
-      const mComp = line.match(/([A-Za-z0-9一-龠ぁ-ゔァ-ヴー]+(?:社|様|御中))/);
-      if (mComp) companyOrClient = mComp[1];
-    }
-
-    // 課題・悩み
-    if (line.includes("課題") || line.includes("悩み") || line.includes("古い") || line.includes("困") || line.includes("相談") || line.includes("見栄え")) {
-      issues.push(line.replace(/^(課題|悩み)[:：]?\s*/, ''));
-    }
-    // 提案・強み・関心
-    else if (line.includes("提案") || line.includes("興味") || line.includes("対応") || line.includes("一貫") || line.includes("強み") || line.includes("デザイン")) {
-      proposals.push(line.replace(/^(提案|関心|強み)[:：]?\s*/, ''));
-    }
-    // 条件（予算・納期）
-    else if (line.includes("予算") || line.includes("納期") || line.includes("条件") || line.includes("万") || line.includes("月")) {
-      conditions.push(line.replace(/^(条件|予算|納期)[:：]?\s*/, ''));
-    }
-    // ネクストアクション
-    else if (line.includes("次") || line.includes("アクション") || line.includes("見積") || line.includes("再訪") || line.includes("提出") || line.includes("予定")) {
-      nextActions.push(line.replace(/^(次|ネクストアクション|次アクション)[:：]?\s*/, ''));
-    }
-    else {
-      generalNotes.push(line);
-    }
+// ---- template picker ----
+document.querySelectorAll('.tpl-card[data-tpl]').forEach(card=>{
+  card.addEventListener('click', ()=>{
+    document.querySelectorAll('.tpl-card[data-tpl]').forEach(c=>c.classList.remove('active'));
+    card.classList.add('active');
+    state.template = card.dataset.tpl;
+    renderSlides();
   });
+});
 
-  // デフォルト埋め合わせ処理（入力が少ない場合も崩さない）
-  if (issues.length === 0) issues = [lines[0] || "現状の課題抽出および要件ヒアリング"];
-  if (proposals.length === 0) proposals = ["構想・デザインから設計・試作まで一貫サポート", "アジャイル開発による納期圧縮提案"];
-  if (conditions.length === 0) conditions = ["予算・納期の最適化プラン検討"];
-  if (nextActions.length === 0) nextActions = ["お見積り・ご提案書の作成", "次回お打ち合わせ設定"];
+// ---- company (group entity) picker ----
+document.querySelectorAll('.co-card').forEach(card=>{
+  card.addEventListener('click', ()=>{
+    document.querySelectorAll('.co-card').forEach(c=>c.classList.remove('active'));
+    card.classList.add('active');
+    state.companyKey = card.dataset.co;
+    state.companyName = COMPANIES[state.companyKey].name;
+    renderSlides();
+  });
+});
 
-  return [
-    {
-      badge: "EXECUTIVE SUMMARY",
-      title: `${companyOrClient} 様 訪問対話・プロジェクト要約`,
-      grid: [
-        { title: "訪問概要", items: [`ターゲット: ${companyOrClient}`, person ? `ご担当者: ${person}` : "担当者ヒアリング完了", `対話日時: ${new Date().toLocaleDateString('ja-JP')}`] },
-        { title: "主要テーマ", items: generalNotes.length > 0 ? generalNotes.slice(0, 3) : ["新意匠・筐体開発の検討", "仕様および製造プロセスの見直し"] }
-      ]
-    },
-    {
-      badge: "ISSUES & REQUIREMENTS",
-      title: "現状の課題およびご要望",
-      grid: [
-        { title: "直面している課題", items: issues },
-        { title: "前提条件・制約", items: conditions }
-      ]
-    },
-    {
-      badge: "PROPOSED SOLUTION",
-      title: "弊社からのソリューション提案",
-      grid: [
-        { title: "提案価値・アプローチ", items: proposals },
-        { title: "提供可能な強み", items: ["デザイン×筐体設計×試作の一貫体制", "開発スピードの最大化とリスク低減"] }
-      ]
-    },
-    {
-      badge: "NEXT STEPS",
-      title: "今後の進め方（ネクストアクション）",
-      grid: [
-        { title: "次回家アクション項目", items: nextActions },
-        { title: "スケジュール目安", items: ["提案書・見積書のご提出", "技術仕様および試作プロセスの最終確定"] }
-      ]
-    }
-  ];
-}
+// ---- doc type picker ----
+document.querySelectorAll('.dt-card').forEach(card=>{
+  card.addEventListener('click', ()=>{
+    document.querySelectorAll('.dt-card').forEach(c=>c.classList.remove('active'));
+    card.classList.add('active');
+    state.docType = card.dataset.dt;
+  });
+});
 
-function generateDeck() {
-  const input = document.getElementById('promptInput').value.trim();
-  if (!input) {
-    alert("プロンプト（訪問メモ）を入力してください。");
+// ---- Step 1: outline (Gamma式 — 見出しだけ先に確認) ----
+document.getElementById('outlineBtn').addEventListener('click', createOutline);
+
+async function createOutline(){
+  const notes = document.getElementById('notesInput').value.trim();
+  const statusEl = document.getElementById('genStatus');
+  if(!notes){ statusEl.textContent = 'プロンプトを入力してください。'; return; }
+  const gasUrl = document.getElementById('gasUrl').value.trim();
+  const controls = getGenControls();
+
+  if(!gasUrl){
+    statusEl.textContent = 'アウトライン機能はGAS連携（AI）が必要です。簡易生成をご利用ください。';
     return;
   }
-
-  deckData = parseTextToDeck(input);
-  renderCanvas();
-  document.getElementById('exportBtn').style.display = 'inline-block';
+  statusEl.textContent = 'アウトライン作成中…';
+  document.getElementById('outlineBtn').disabled = true;
+  try{
+    const res = await fetch(gasUrl, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ mode:'outline', notes, companyKey: state.companyKey, docType: state.docType, ...controls })
+    });
+    if(!res.ok) throw new Error('サーバーエラー ' + res.status);
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+    state.outline = data.outline;
+    renderOutline();
+    document.getElementById('outlineSection').style.display = 'block';
+    statusEl.textContent = 'アウトラインを作成しました。内容を確認してください。';
+  }catch(e){
+    console.error(e);
+    statusEl.textContent = 'アウトライン作成に失敗しました：' + e.message;
+  }finally{
+    document.getElementById('outlineBtn').disabled = false;
+  }
 }
 
-function renderCanvas() {
-  const canvas = document.getElementById('presentationCanvas');
-  canvas.innerHTML = '';
-
-  deckData.forEach((card, cIdx) => {
-    const cardEl = document.createElement('div');
-    cardEl.className = 'gamma-card';
-    
-    let gridHtml = card.grid.map((g, gIdx) => `
-      <div class="grid-box">
-        <h4 contenteditable="true" onblur="deckData[${cIdx}].grid[${gIdx}].title = this.innerText">${g.title}</h4>
-        <ul>
-          ${g.items.map((item, iIdx) => `
-            <li contenteditable="true" onblur="deckData[${cIdx}].grid[${gIdx}].items[${iIdx}] = this.innerText">${item}</li>
-          `).join('')}
-        </ul>
-      </div>
-    `).join('');
-
-    cardEl.innerHTML = `
-      <span class="card-badge">${card.badge}</span>
-      <h3 class="card-title" contenteditable="true" onblur="deckData[${cIdx}].title = this.innerText">${card.title}</h3>
-      <div class="card-grid">${gridHtml}</div>
+function renderOutline(){
+  const list = document.getElementById('outlineList');
+  list.innerHTML = '';
+  state.outline.forEach((heading, idx)=>{
+    const item = document.createElement('div');
+    item.className = 'outline-item';
+    item.innerHTML = `
+      <span class="oi-num">${idx+1}</span>
+      <span contenteditable="true" data-idx="${idx}">${escapeHtml(heading)}</span>
+      <button class="mini-btn" data-act="up" data-idx="${idx}">↑</button>
+      <button class="mini-btn" data-act="down" data-idx="${idx}">↓</button>
+      <button class="mini-btn" data-act="del" data-idx="${idx}">削除</button>
     `;
-
-    canvas.appendChild(cardEl);
+    list.appendChild(item);
   });
-}
-
-// PowerPoint (.pptx) 高精度出力
-function exportPPTX() {
-  if (typeof PptxGenJS === 'undefined') {
-    alert('ライブラリ読み込み中... 数秒待ってから再試行してください。');
-    return;
-  }
-
-  const pptx = new PptxGenJS();
-  pptx.layout = 'WIDE';
-
-  deckData.forEach(card => {
-    const slide = pptx.addSlide();
-    slide.background = { color: '0B0F17' };
-
-    // Badge & Header
-    slide.addText(card.badge, { x: 0.8, y: 0.5, fontSize: 11, bold: true, color: '818CF8' });
-    slide.addText(card.title, { x: 0.8, y: 0.9, w: 11, fontSize: 22, bold: true, color: 'FFFFFF' });
-
-    // Grid Layout
-    const boxWidth = 5.5;
-    card.grid.forEach((g, idx) => {
-      const col = idx % 2;
-      const row = Math.floor(idx / 2);
-      const xPos = 0.8 + (col * 5.9);
-      const yPos = 1.8 + (row * 2.6);
-
-      // Card Box Background
-      slide.addShape(pptx.shapes.ROUNDED_RECTANGLE, {
-        x: xPos, y: yPos, w: boxWidth, h: 2.3,
-        fill: { color: '151C28' },
-        line: { color: '334155', width: 1 },
-        rectRadius: 0.1
-      });
-
-      slide.addText(g.title, { x: xPos + 0.3, y: yPos + 0.2, w: boxWidth - 0.6, fontSize: 15, bold: true, color: '818CF8' });
-      
-      const bulletItems = g.items.map(it => ({ text: it, options: { breakLine: true, fontSize: 12, color: '94A3B8' } }));
-      slide.addText(bulletItems, { x: xPos + 0.3, y: yPos + 0.7, w: boxWidth - 0.6, h: 1.4, bullet: true, valign: 'top' });
+  list.querySelectorAll('[contenteditable]').forEach(node=>{
+    node.addEventListener('blur', e=>{ state.outline[+e.target.dataset.idx] = e.target.textContent.trim(); });
+  });
+  list.querySelectorAll('.mini-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const idx = +btn.dataset.idx, act = btn.dataset.act;
+      if(act==='del'){ state.outline.splice(idx,1); }
+      if(act==='up' && idx>0){ [state.outline[idx-1], state.outline[idx]] = [state.outline[idx], state.outline[idx-1]]; }
+      if(act==='down' && idx<state.outline.length-1){ [state.outline[idx+1], state.outline[idx]] = [state.outline[idx], state.outline[idx+1]]; }
+      renderOutline();
     });
   });
+}
 
-  pptx.writeFile({ fileName: 'AI_Generated_Report.pptx' });
+document.getElementById('outlineAddBtn').addEventListener('click', ()=>{
+  state.outline.push('新しい見出し');
+  renderOutline();
+});
+
+document.getElementById('expandBtn').addEventListener('click', expandOutline);
+
+async function expandOutline(){
+  const notes = document.getElementById('notesInput').value.trim();
+  const statusEl = document.getElementById('outlineStatus');
+  const gasUrl = document.getElementById('gasUrl').value.trim();
+  const controls = getGenControls();
+  if(!state.outline.length){ statusEl.textContent = 'アウトラインが空です。'; return; }
+
+  statusEl.textContent = '本文生成中…';
+  document.getElementById('expandBtn').disabled = true;
+  try{
+    const res = await fetch(gasUrl, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ mode:'expand', notes, outline: state.outline, companyKey: state.companyKey, docType: state.docType, ...controls })
+    });
+    if(!res.ok) throw new Error('サーバーエラー ' + res.status);
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+    state.slides = data.slides;
+    renderSlides();
+    showResultSections();
+    statusEl.textContent = '生成完了。内容を確認・編集してください。';
+  }catch(e){
+    console.error(e);
+    statusEl.textContent = '生成に失敗しました：' + e.message;
+  }finally{
+    document.getElementById('expandBtn').disabled = false;
+  }
+}
+
+function showResultSections(){
+  document.getElementById('editorSection').style.display = 'block';
+  document.getElementById('refineSection').style.display = 'block';
+  document.getElementById('reviewSection').style.display = 'block';
+  document.getElementById('exportSection').style.display = 'block';
+}
+
+// ---- Step 1(代替): アウトラインをスキップして直接生成 ----
+document.getElementById('genBtn').addEventListener('click', generate);
+
+async function generate(){
+  const notes = document.getElementById('notesInput').value.trim();
+  const statusEl = document.getElementById('genStatus');
+  if(!notes){ statusEl.textContent = 'プロンプトを入力してください。'; return; }
+  const gasUrl = document.getElementById('gasUrl').value.trim();
+  const controls = getGenControls();
+  statusEl.textContent = '生成中…';
+  document.getElementById('genBtn').disabled = true;
+
+  try{
+    let slides;
+    if(gasUrl){
+      slides = await generateViaGAS(notes, gasUrl, state.companyKey, state.docType, controls);
+    }else{
+      slides = fallbackGenerate(notes);
+      statusEl.textContent = 'GAS未設定のため簡易ロジックで生成しました（AI要約を使うにはREADME参照）。';
+    }
+    state.slides = slides;
+    renderSlides();
+    showResultSections();
+    if(gasUrl) statusEl.textContent = '生成完了。内容を確認・編集してください。';
+  }catch(e){
+    console.error(e);
+    statusEl.textContent = '生成に失敗しました：' + e.message;
+  }finally{
+    document.getElementById('genBtn').disabled = false;
+  }
+}
+
+async function generateViaGAS(notes, url, companyKey, docType, controls){
+  const res = await fetch(url, {
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify({ mode:'generate', notes, companyKey, docType, ...controls })
+  });
+  if(!res.ok) throw new Error('サーバーエラー ' + res.status);
+  const data = await res.json();
+  if(data.error) throw new Error(data.error);
+  return data.slides;
+}
+
+// simple offline fallback: turns notes into a title slide + bullet slides
+function fallbackGenerate(notes){
+  const lines = notes.split(/\n+/).map(l=>l.trim()).filter(Boolean);
+  const co = COMPANIES[state.companyKey];
+  const title = lines[0] ? lines[0].slice(0, 28) : `${co.short} 訪問記録`;
+  const rest = lines.slice(1);
+  const chunks = [];
+  for(let i=0;i<rest.length;i+=4){ chunks.push(rest.slice(i,i+4)); }
+  const slides = [{ heading: title, subhead: `${new Date().toLocaleDateString('ja-JP')}｜${co.tagline}`, bullets: [], isTitle:true }];
+  if(chunks.length===0){
+    slides.push({ heading:'訪問メモ', subhead:'', bullets:[notes] });
+  }else{
+    chunks.forEach((c,i)=>{
+      slides.push({ heading: i===0 ? '訪問概要' : `補足 ${i}`, subhead:'', bullets:c });
+    });
+  }
+  return slides;
+}
+
+// ---- editor rendering ----
+function renderSlides(){
+  const list = document.getElementById('slideList');
+  list.innerHTML = '';
+  state.slides.forEach((s, idx)=>{
+    const card = document.createElement('div');
+    card.className = 'slide-card';
+    card.innerHTML = `
+      <div class="slide-card-head">
+        <span class="tag">SLIDE ${idx+1}${s.isTitle ? '（表紙）' : ''}</span>
+        <span>
+          <button class="mini-btn" data-act="regen" data-idx="${idx}">↻ 作り直す</button>
+          <button class="mini-btn" data-act="up" data-idx="${idx}">↑</button>
+          <button class="mini-btn" data-act="down" data-idx="${idx}">↓</button>
+          <button class="mini-btn" data-act="del" data-idx="${idx}">削除</button>
+        </span>
+      </div>
+      <div class="stage ${state.template}">
+        <div class="stage-inner" id="stage-${idx}"></div>
+      </div>
+    `;
+    list.appendChild(card);
+    renderStage(document.getElementById(`stage-${idx}`), s, idx);
+  });
+
+  list.querySelectorAll('.mini-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const idx = +btn.dataset.idx;
+      const act = btn.dataset.act;
+      if(act==='del'){ state.slides.splice(idx,1); renderSlides(); }
+      if(act==='up' && idx>0){ [state.slides[idx-1], state.slides[idx]] = [state.slides[idx], state.slides[idx-1]]; renderSlides(); }
+      if(act==='down' && idx<state.slides.length-1){ [state.slides[idx+1], state.slides[idx]] = [state.slides[idx], state.slides[idx+1]]; renderSlides(); }
+      if(act==='regen'){ regenerateSlide(idx, btn); }
+    });
+  });
+}
+
+async function regenerateSlide(idx, btn){
+  const gasUrl = document.getElementById('gasUrl').value.trim();
+  if(!gasUrl){ alert('この機能はGAS連携（AI）が必要です。README参照。'); return; }
+  const notes = document.getElementById('notesInput').value.trim();
+  const controls = getGenControls();
+  const original = btn.textContent;
+  btn.textContent = '作り直し中…';
+  btn.disabled = true;
+  try{
+    const res = await fetch(gasUrl, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({
+        mode:'regenerate_slide',
+        notes,
+        companyKey: state.companyKey,
+        docType: state.docType,
+        heading: state.slides[idx].heading,
+        isTitle: !!state.slides[idx].isTitle,
+        ...controls
+      })
+    });
+    if(!res.ok) throw new Error('サーバーエラー ' + res.status);
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+    state.slides[idx] = data.slide;
+    renderSlides();
+  }catch(e){
+    console.error(e);
+    alert('作り直しに失敗しました：' + e.message);
+    btn.textContent = original;
+    btn.disabled = false;
+  }
+}
+
+function renderStage(el, s, idx){
+  const bulletsHtml = (s.bullets||[]).map(b=>`<li contenteditable="true" data-idx="${idx}" data-field="bullet">${escapeHtml(b)}</li>`).join('');
+  if(state.template === 'tpl-navy'){
+    el.innerHTML = `
+      <div class="stage-headerbar">
+        <div class="stage-badge">${String(idx+1).padStart(2,'0')}</div>
+        <div class="stage-title" contenteditable="true" data-idx="${idx}" data-field="heading">${escapeHtml(s.heading||'')}</div>
+      </div>
+      <div class="stage-body">
+        <div class="stage-sub" contenteditable="true" data-idx="${idx}" data-field="subhead">${escapeHtml(s.subhead||'')}</div>
+        <ul class="stage-bullets">${bulletsHtml}</ul>
+      </div>
+      <div class="stage-foot">${escapeHtml(state.companyName)}</div>
+    `;
+  }else{
+    const tagShort = COMPANIES[state.companyKey].tagShort;
+    el.innerHTML = `
+      <div class="stage-tag">${tagShort} VISIT REPORT</div>
+      <div class="stage-title" contenteditable="true" data-idx="${idx}" data-field="heading">${escapeHtml(s.heading||'')}</div>
+      <div class="stage-sub" contenteditable="true" data-idx="${idx}" data-field="subhead">${escapeHtml(s.subhead||'')}</div>
+      <div class="stage-bar"></div>
+      <ul class="stage-bullets">${bulletsHtml}</ul>
+      <div class="stage-foot">${escapeHtml(state.companyName)}</div>
+      ${state.template==='tpl-red' ? '<div class="stage-hex"></div>' : ''}
+    `;
+  }
+  el.querySelectorAll('[contenteditable]').forEach(node=>{
+    node.addEventListener('blur', onEdit);
+  });
+}
+
+function onEdit(e){
+  const idx = +e.target.dataset.idx;
+  const field = e.target.dataset.field;
+  if(field==='bullet'){
+    const bulletsList = [...e.target.parentElement.children].map(li=>li.textContent);
+    state.slides[idx].bullets = bulletsList;
+  }else{
+    state.slides[idx][field] = e.target.textContent;
+  }
+}
+
+function escapeHtml(str){
+  return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+document.getElementById('addSlideBtn').addEventListener('click', ()=>{
+  state.slides.push({ heading:'新しいスライド', subhead:'', bullets:['項目1'] });
+  renderSlides();
+});
+
+// ---- refine: additional instructions on top of the generated draft ----
+document.getElementById('refineBtn').addEventListener('click', refine);
+
+async function refine(){
+  const instruction = document.getElementById('refineInput').value.trim();
+  const statusEl = document.getElementById('refineStatus');
+  if(!instruction){ statusEl.textContent = '追加のお願いを入力してください。'; return; }
+  const gasUrl = document.getElementById('gasUrl').value.trim();
+  if(!gasUrl){ statusEl.textContent = 'この機能はGAS連携（AI）が必要です。README参照。'; return; }
+
+  statusEl.textContent = '反映中…';
+  document.getElementById('refineBtn').disabled = true;
+  try{
+    const res = await fetch(gasUrl, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({
+        mode:'refine',
+        companyKey: state.companyKey,
+        docType: state.docType,
+        currentSlides: state.slides,
+        instruction
+      })
+    });
+    if(!res.ok) throw new Error('サーバーエラー ' + res.status);
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+    state.slides = data.slides;
+    renderSlides();
+    document.getElementById('refineInput').value = '';
+    statusEl.textContent = '反映しました。内容を確認してください。';
+  }catch(e){
+    console.error(e);
+    statusEl.textContent = '反映に失敗しました：' + e.message;
+  }finally{
+    document.getElementById('refineBtn').disabled = false;
+  }
+}
+
+// ---- strict pre-submission review ----
+document.getElementById('reviewBtn').addEventListener('click', runReview);
+
+async function runReview(){
+  const statusEl = document.getElementById('reviewStatus');
+  const resultEl = document.getElementById('reviewResult');
+  const gasUrl = document.getElementById('gasUrl').value.trim();
+  if(!gasUrl){ statusEl.textContent = 'この機能はGAS連携（AI）が必要です。README参照。'; return; }
+  if(!state.slides.length){ statusEl.textContent = '先に資料を生成してください。'; return; }
+
+  statusEl.textContent = 'チェック中…';
+  resultEl.innerHTML = '';
+  document.getElementById('reviewBtn').disabled = true;
+  try{
+    const res = await fetch(gasUrl, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({
+        mode:'review',
+        companyKey: state.companyKey,
+        docType: state.docType,
+        slides: state.slides
+      })
+    });
+    if(!res.ok) throw new Error('サーバーエラー ' + res.status);
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+    renderReview(data.review);
+    statusEl.textContent = 'チェック完了。';
+  }catch(e){
+    console.error(e);
+    statusEl.textContent = 'チェックに失敗しました：' + e.message;
+  }finally{
+    document.getElementById('reviewBtn').disabled = false;
+  }
+}
+
+function renderReview(r){
+  const el = document.getElementById('reviewResult');
+  const badgeClass = r.conclusion === '提出可' ? 'ok' : (r.conclusion === '修正後提出可' ? 'warn' : 'ng');
+  const critical = (r.criticalIssues||[]).map(i=>`<li>${escapeHtml(i)}</li>`).join('') || '<li>なし</li>';
+  const pages = (r.pageNotes||[]).map(p=>`
+    <div class="review-page">
+      <div class="p-title">SLIDE ${p.page}</div>
+      <ul>${(p.issues||[]).map(i=>`<li>${escapeHtml(i)}</li>`).join('') || '<li>指摘なし</li>'}</ul>
+    </div>`).join('');
+  const fixes = (r.fixSuggestions||[]).map(f=>`<div class="fix-item">${escapeHtml(f)}</div>`).join('');
+  const priority = (r.priorityOrder||[]).map((p,i)=>`<li>${i+1}. ${escapeHtml(p)}</li>`).join('');
+
+  el.innerHTML = `
+    <div class="review-block">
+      <span class="review-badge ${badgeClass}">${escapeHtml(r.conclusion||'-')}</span>
+      <span class="review-score">${r.score ?? '-'} / 100点</span>
+    </div>
+    <div class="review-block critical">
+      <h3>致命的な問題</h3>
+      <ul>${critical}</ul>
+    </div>
+    <div class="review-block">
+      <h3>ページごとの指摘</h3>
+      ${pages || '<p style="font-size:12px;color:var(--sub);">指摘なし</p>'}
+    </div>
+    <div class="review-block">
+      <h3>具体的な修正文</h3>
+      ${fixes || '<p style="font-size:12px;color:var(--sub);">なし</p>'}
+    </div>
+    <div class="review-block">
+      <h3>修正優先順位</h3>
+      <ul style="list-style:none;padding-left:0;">${priority}</ul>
+    </div>
+  `;
+}
+
+// ---- export: PPTX ----
+document.getElementById('exportPptxBtn').addEventListener('click', exportPptx);
+
+function exportPptx(){
+  const t = TEMPLATES[state.template];
+  const pptx = new PptxGenJS();
+  pptx.defineLayout({ name:'WIDE', width:13.333, height:7.5 });
+  pptx.layout = 'WIDE';
+
+  state.slides.forEach((s, idx)=>{
+    const slide = pptx.addSlide();
+    slide.background = { color: t.bg };
+
+    if(state.template === 'tpl-navy'){
+      slide.addShape('rect', { x:0, y:0, w:13.333, h:1.6, fill:{color:t.accent} });
+      slide.addText(String(idx+1).padStart(2,'0'), { x:0.5, y:0.4, w:1, h:0.8, fontSize:24, bold:true, color:t.accent, fill:{color:'FFFFFF'}, align:'center', valign:'middle' });
+      slide.addText(s.heading||'', { x:1.8, y:0.35, w:10.5, h:0.9, fontSize:28, bold:true, color:'FFFFFF', fontFace:'Meiryo' });
+      if(s.subhead) slide.addText(s.subhead, { x:0.6, y:1.9, w:12, h:0.5, fontSize:14, bold:true, color:t.accent, fontFace:'Meiryo' });
+      addBullets(slide, s.bullets, 0.6, 2.5, 12, 4.3, t.bodyText);
+    }else{
+      slide.addText(`${COMPANIES[state.companyKey].tagShort} VISIT REPORT`, { x:0.6, y:0.4, w:8, h:0.35, fontSize:10, bold:true, color:t.accent, charSpacing:2, fontFace:'Meiryo' });
+      slide.addText(s.heading||'', { x:0.6, y:0.75, w:11.8, h:1.1, fontSize:30, bold:true, color:t.ink, fontFace:'Meiryo' });
+      if(s.subhead) slide.addText(s.subhead, { x:0.6, y:1.75, w:11.5, h:0.4, fontSize:13, color:t.sub, fontFace:'Meiryo' });
+      slide.addShape('rect', { x:0.6, y:2.25, w:0.5, h:0.06, fill:{color:t.accent} });
+      addBullets(slide, s.bullets, 0.6, 2.6, 11.8, 4.0, t.bodyText, t.accent);
+      slide.addText(state.companyName, { x:10.5, y:7.05, w:2.4, h:0.3, fontSize:8, color:'9CA3AF', align:'right' });
+    }
+  });
+
+  pptx.writeFile({ fileName: buildFileName('pptx') });
+}
+
+function addBullets(slide, bullets, x,y,w,h, color, bulletColor){
+  if(!bullets || bullets.length===0) return;
+  const items = bullets.map(b=>({ text:b, options:{ bullet:{ color: bulletColor||color }, breakLine:true, color, fontSize:16, fontFace:'Meiryo', paraSpaceAfter:10 } }));
+  slide.addText(items, { x,y,w,h, valign:'top' });
+}
+
+// ---- export: PDF (print) ----
+document.getElementById('exportPdfBtn').addEventListener('click', ()=>{
+  const area = document.getElementById('printArea');
+  area.innerHTML = '';
+  state.slides.forEach((s, idx)=>{
+    const page = document.createElement('div');
+    page.className = `print-page stage ${state.template}`;
+    const inner = document.createElement('div');
+    inner.className = 'stage-inner';
+    page.appendChild(inner);
+    area.appendChild(page);
+    renderStage(inner, s, idx);
+    inner.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'));
+  });
+  window.print();
+});
+
+function buildFileName(ext){
+  const d = new Date();
+  const ds = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+  return `visit_report_${ds}.${ext}`;
 }
 </script>
-
 </body>
 </html>
