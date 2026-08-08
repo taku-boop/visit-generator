@@ -3,233 +3,276 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI 訪問資料ジェネレーター (Gamma Style)</title>
-<!-- PPTX Generator Library -->
+<title>Next-Gamma AI Presentation Engine</title>
+<!-- PptxGenJS CDN -->
 <script src="https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <style>
   :root {
-    --primary: #6366f1;
-    --primary-hover: #4f46e5;
-    --bg: #0f172a;
-    --card-bg: #1e293b;
-    --text: #f8fafc;
-    --sub-text: #94a3b8;
-    --accent-red: #f43f5e;
-    --accent-navy: #1e3a8a;
-    --accent-mono: #334155;
+    --bg: #090d16;
+    --panel-bg: #131b2e;
+    --card-bg: #1c2942;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --accent: #6366f1;
+    --accent-glow: rgba(99, 102, 241, 0.35);
+    --border: #2e3d5b;
   }
+
+  /* Theme Overrides */
+  body.theme-light {
+    --bg: #f8fafc;
+    --panel-bg: #ffffff;
+    --card-bg: #f1f5f9;
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --border: #e2e8f0;
+  }
+
   * { box-sizing: border-box; }
   body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     background: var(--bg);
-    color: var(--text);
-    padding-bottom: 60px;
+    color: var(--text-primary);
+    transition: background 0.3s, color 0.3s;
+    padding-bottom: 80px;
   }
+
   header {
-    background: #1e293b;
-    border-bottom: 1px solid #334155;
+    background: var(--panel-bg);
+    border-bottom: 1px solid var(--border);
     padding: 16px 32px;
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
-  header h1 { font-size: 18px; margin: 0; font-weight: 700; color: #fff; }
-  header span { font-size: 12px; color: #818cf8; background: rgba(99,102,241,0.1); padding: 4px 8px; border-radius: 4px; }
+  header h1 { font-size: 18px; margin: 0; font-weight: 800; background: linear-gradient(135deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
   
-  main { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+  main { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
 
-  /* Prompt Box Area */
-  .prompt-panel {
-    background: var(--card-bg);
-    border: 1px solid #334155;
+  /* Prompt Panel */
+  .panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
     border-radius: 16px;
     padding: 24px;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   }
-  .prompt-panel h2 { margin-top: 0; font-size: 16px; color: #f8fafc; }
+
   textarea {
     width: 100%;
     height: 140px;
-    background: #0f172a;
-    border: 1px solid #334155;
-    border-radius: 10px;
-    padding: 14px;
-    color: #fff;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    color: var(--text-primary);
     font-size: 14px;
-    resize: vertical;
     outline: none;
+    transition: border 0.2s;
   }
-  textarea:focus { border-color: var(--primary); }
-  
-  .controls { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+  textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+  .controls { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+  .btn-group { display: flex; gap: 10px; }
+
   .btn {
-    background: var(--primary);
+    background: var(--accent);
     color: #fff;
     border: none;
     padding: 12px 24px;
     border-radius: 8px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
-    transition: 0.2s;
+    transition: transform 0.1s, background 0.2s;
   }
-  .btn:hover { background: var(--primary-hover); }
-  .btn-export { background: #10b981; }
-  .btn-export:hover { background: #059669; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text-primary); }
 
-  /* Company & Theme Selector */
-  .selector-group { display: flex; gap: 10px; margin-top: 12px; }
-  .chip {
-    background: #0f172a;
-    border: 1px solid #334155;
-    padding: 8px 14px;
+  /* Theme selector */
+  .theme-selector { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--text-secondary); }
+  .theme-btn { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+  .theme-btn.active { border-color: var(--accent); }
+
+  /* Gamma Canvas Section */
+  #presentationCanvas { margin-top: 40px; display: flex; flex-direction: column; gap: 32px; }
+
+  /* Slide Block (Gamma Card) */
+  .gamma-card {
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
     border-radius: 20px;
-    font-size: 12px;
-    cursor: pointer;
-    color: var(--sub-text);
-  }
-  .chip.active { border-color: var(--primary); color: #fff; background: rgba(99,102,241,0.2); }
-
-  /* Slide Canvas (Gamma Style) */
-  #slideCanvas { margin-top: 40px; display: flex; flex-direction: column; gap: 24px; }
-  .slide-card {
-    background: #ffffff;
-    color: #0f172a;
-    border-radius: 12px;
-    aspect-ratio: 16 / 9;
     padding: 40px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
     position: relative;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    overflow: hidden;
   }
-  .slide-card.tpl-red { border-top: 8px solid var(--accent-red); }
-  .slide-card.tpl-navy { border-top: 8px solid var(--accent-navy); }
-  .slide-card.tpl-mono { border-top: 8px solid var(--accent-mono); }
 
-  .slide-tag { font-size: 12px; font-weight: 700; color: var(--primary); letter-spacing: 1px; }
-  .slide-title { font-size: 28px; font-weight: 800; margin: 10px 0; outline: none; }
-  .slide-bullets { font-size: 16px; line-height: 1.8; color: #334155; }
-  .slide-bullets li { margin-bottom: 8px; outline: none; }
-  .slide-footer { font-size: 10px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 10px; margin-top: auto; }
+  .gamma-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 4px;
+    background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899);
+  }
+
+  .card-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
+  .card-badge { font-size: 11px; font-weight: 800; color: var(--accent); letter-spacing: 1.5px; text-transform: uppercase; }
+  
+  .card-title {
+    font-size: 26px;
+    font-weight: 800;
+    margin: 0 0 24px 0;
+    color: var(--text-primary);
+    outline: none;
+  }
+
+  /* Grid Layout inside Gamma Card */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+  }
+
+  .grid-box {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+  .grid-box:hover { border-color: var(--accent); }
+
+  .grid-box h4 { margin: 0 0 8px 0; font-size: 15px; color: var(--accent); outline: none; }
+  .grid-box p { margin: 0; font-size: 13px; color: var(--text-secondary); line-height: 1.6; outline: none; }
+
 </style>
 </head>
 <body>
 
 <header>
-  <h1>✨ AI 訪問資料ジェネレーター</h1>
-  <span>Gamma Engine Powered</span>
+  <h1>⚡ Next-Gamma Engine</h1>
+  <div class="theme-selector">
+    <span>テーマ:</span>
+    <div class="theme-btn active" style="background:#090d16;" onclick="setTheme('dark', this)"></div>
+    <div class="theme-btn" style="background:#f8fafc;" onclick="setTheme('light', this)"></div>
+  </div>
 </header>
 
 <main>
-  <!-- Prompt Input Panel -->
-  <div class="prompt-panel">
-    <h2>🎯 どんな資料を作りますか？（訪問メモ・メモ書きを貼り付け）</h2>
-    <textarea id="promptInput" placeholder="例：8/8 A社訪問。担当：田中様。課題：既存機の外装を新しくしたい。予算300〜500万。デザインから量産まで一貫対応できる点に好感。次回見逃せない見積提出。"></textarea>
-
-    <div class="selector-group">
-      <span class="chip active" onclick="setCompany('クロスエフェクト', this)">クロスエフェクト</span>
-      <span class="chip" onclick="setCompany('クロスデザイン', this)">クロスデザイン</span>
-      <span class="chip" onclick="setCompany('クロスメディカル', this)">クロスメディカル</span>
-    </div>
+  <!-- Prompt Box -->
+  <div class="panel">
+    <h2 style="margin-top:0; font-size:16px;">AIプレゼンテーション・生成プロンプト</h2>
+    <textarea id="promptInput" placeholder="訪問メモや提案したい内容を入力してください。
+例: 8/8 A社訪問。担当：田中様。課題：既存の粉体成型機の外装が古く、展示会での見栄えが悪い。予算300〜500万。一貫対応に興味あり。次回見積提出。"></textarea>
 
     <div class="controls">
-      <button class="btn" onclick="generateSlides()">✨ AIスライドを生成する</button>
-      <button class="btn btn-export" id="exportBtn" style="display:none;" onclick="exportPPTX()">📥 PowerPoint (.pptx) をダウンロード</button>
+      <div class="btn-group">
+        <button class="btn" onclick="generateGammaDeck()">✨ プレゼンカードを自動生成</button>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-secondary" id="exportBtn" style="display:none;" onclick="exportPPTX()">📥 PowerPoint (.pptx) 出力</button>
+      </div>
     </div>
   </div>
 
-  <!-- Generated Slides Viewport -->
-  <div id="slideCanvas"></div>
+  <!-- Deck Output Canvas -->
+  <div id="presentationCanvas"></div>
 </main>
 
 <script>
-let currentCompany = "クロスエフェクト";
-let generatedSlideData = [];
+let deckData = [];
 
-function setCompany(name, el) {
-  currentCompany = name;
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
+function setTheme(mode, btn) {
+  document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (mode === 'light') {
+    document.body.classList.add('theme-light');
+  } else {
+    document.body.classList.remove('theme-light');
+  }
 }
 
-// Simple AI Structuring Engine (Gamma-like text parser)
-function generateSlides() {
-  const text = document.getElementById('promptInput').value.trim();
-  if(!text) {
-    alert("プロンプト（訪問メモ）を入力してください。");
+// AI Structure Parsing Engine
+function generateGammaDeck() {
+  const input = document.getElementById('promptInput').value.trim();
+  if(!input) {
+    alert("プロンプトを入力してください。");
     return;
   }
 
-  const lines = text.split('\n').filter(l => l.trim() !== '');
-  
-  // AI-like Slide Construction Logic
-  generatedSlideData = [
+  const lines = input.split('\n').filter(l => l.trim() !== '');
+
+  // Generate Gamma-Style Block-Structured Data
+  deckData = [
     {
-      type: 'title',
-      tag: 'VISIT REPORT',
-      title: lines[0] ? lines[0].substring(0, 30) : '訪問対話報告書',
-      bullets: ['提案会社：' + currentCompany, '作成日：' + new Date().toLocaleDateString('ja-JP')]
-    },
-    {
-      type: 'content',
-      tag: 'ISSUES & NEEDS',
-      title: '現状の課題とニーズ',
-      bullets: lines.length > 1 ? lines.slice(1, 4) : [text, 'デザイン・仕様の見直し', '納期・コストの最適化提案']
-    },
-    {
-      type: 'content',
-      tag: 'PROPOSAL',
-      title: currentCompany + ' からのご提案',
-      bullets: [
-        '構想設計から試作・量産まで一貫したワンストップサポート',
-        'アジャイル開発による圧倒的なスピード対応',
-        '貴社仕様に合わせたカスタマイズソリューション'
+      badge: 'VISIT SUMMARY',
+      title: lines[0] ? lines[0].substring(0, 35) : '訪問対話メモ報告',
+      grid: [
+        { title: '訪問目的', desc: 'ヒアリング及び課題認識の共有' },
+        { title: '対象案件', desc: '新意匠・筐体開発プロジェクト' },
+        { title: 'ステータス', desc: '要件検討・次回見積提案フェーズ' }
       ]
     },
     {
-      type: 'content',
-      tag: 'NEXT ACTION',
-      title: '今後の進め方・ネクストアクション',
-      bullets: ['お見積り・仕様提案書の作成', '次回打ち合わせ日程の調整', '試作サンプルの確認']
+      badge: 'KEY ISSUES & REQUIREMENTS',
+      title: '現状の課題とクライアント要求',
+      grid: [
+        { title: '課題 01', desc: lines[1] || '現行製品のデザイン老朽化' },
+        { title: '課題 02', desc: lines[2] || '展示会に向けた見栄え・意匠性の刷新' },
+        { title: '予算・納期', desc: lines[3] || '予算300〜500万 / 年内納品希望' }
+      ]
+    },
+    {
+      badge: 'CORE PROPOSAL',
+      title: '弊社からの提供価値・ソリューション',
+      grid: [
+        { title: '一貫サポート', desc: 'デザイン構想から筐体設計・試作・小ロット量産まで対応' },
+        { title: 'アジャイル対応', desc: '超高速3Dプロトタイピングによる納期短縮' },
+        { title: '品質保証', desc: '製造・量産を見据えた実現性の高い構造設計提案' }
+      ]
+    },
+    {
+      badge: 'NEXT STEPS',
+      title: '今後の進め方とロードマップ',
+      grid: [
+        { title: 'Step 1', desc: '概算見積書および概念デザインラフの提出' },
+        { title: 'Step 2', desc: '次回打ち合わせでの技術仕様・スケジュールの擦り合わせ' }
+      ]
     }
   ];
 
-  renderSlides();
+  renderCanvas();
   document.getElementById('exportBtn').style.display = 'inline-block';
 }
 
-function renderSlides() {
-  const canvas = document.getElementById('slideCanvas');
+function renderCanvas() {
+  const canvas = document.getElementById('presentationCanvas');
   canvas.innerHTML = '';
 
-  generatedSlideData.forEach((s, idx) => {
-    const card = document.createElement('div');
-    card.className = 'slide-card tpl-red';
-    card.innerHTML = `
-      <div>
-        <div class="slide-tag">${s.tag}</div>
-        <div class="slide-title" contenteditable="true" onblur="updateTitle(${idx}, this.innerText)">${s.title}</div>
-        <ul class="slide-bullets">
-          ${s.bullets.map((b, bIdx) => `<li contenteditable="true" onblur="updateBullet(${idx}, ${bIdx}, this.innerText)">${b}</li>`).join('')}
-        </ul>
+  deckData.forEach((card, cIdx) => {
+    const cardEl = document.createElement('div');
+    cardEl.className = 'gamma-card';
+    
+    let gridHtml = card.grid.map((g, gIdx) => `
+      <div class="grid-box">
+        <h4 contenteditable="true" onblur="deckData[${cIdx}].grid[${gIdx}].title = this.innerText">${g.title}</h4>
+        <p contenteditable="true" onblur="deckData[${cIdx}].grid[${gIdx}].desc = this.innerText">${g.desc}</p>
       </div>
-      <div class="slide-footer">${currentCompany} | Slide ${idx + 1}</div>
+    `).join('');
+
+    cardEl.innerHTML = `
+      <div class="card-header">
+        <span class="card-badge">${card.badge}</span>
+      </div>
+      <h3 class="card-title" contenteditable="true" onblur="deckData[${cIdx}].title = this.innerText">${card.title}</h3>
+      <div class="card-grid">${gridHtml}</div>
     `;
-    canvas.appendChild(card);
+
+    canvas.appendChild(cardEl);
   });
 }
 
-function updateTitle(slideIdx, val) {
-  generatedSlideData[slideIdx].title = val;
-}
-
-function updateBullet(slideIdx, bulletIdx, val) {
-  generatedSlideData[slideIdx].bullets[bulletIdx] = val;
-}
-
-// PPTX Export Logic
+// Export Structured Deck to PowerPoint (.pptx)
 function exportPPTX() {
   if (typeof PptxGenJS === 'undefined') {
     alert('ライブラリ読込中... 数秒待ってから再試行してください。');
@@ -239,24 +282,36 @@ function exportPPTX() {
   const pptx = new PptxGenJS();
   pptx.layout = 'WIDE';
 
-  generatedSlideData.forEach(s => {
+  deckData.forEach(card => {
     const slide = pptx.addSlide();
     
-    // Slide Header / Tag
-    slide.addText(s.tag, { x: 0.8, y: 0.6, fontSize: 12, bold: true, color: '6366F1' });
-    
-    // Slide Title
-    slide.addText(s.title, { x: 0.8, y: 1.0, w: 11, fontSize: 26, bold: true, color: '0F172A' });
-    
-    // Bullet Points
-    const bulletItems = s.bullets.map(b => ({ text: b, options: { breakLine: true, fontSize: 16, color: '334155' } }));
-    slide.addText(bulletItems, { x: 0.8, y: 2.2, w: 11, h: 4, bullet: true });
+    // Background
+    slide.background = { color: '090D16' };
 
-    // Footer
-    slide.addText(currentCompany, { x: 0.8, y: 7.0, fontSize: 10, color: '94A3B8' });
+    // Badge / Header
+    slide.addText(card.badge, { x: 0.8, y: 0.5, fontSize: 11, bold: true, color: '818CF8' });
+    slide.addText(card.title, { x: 0.8, y: 0.9, w: 11, fontSize: 24, bold: true, color: 'FFFFFF' });
+
+    // Grid Cards Export Layout
+    card.grid.forEach((g, idx) => {
+      const col = idx % 3;
+      const xPos = 0.8 + (col * 3.8);
+      const yPos = 2.2;
+
+      // Box background
+      slide.addShape(pptx.shapes.ROUNDED_RECTANGLE, {
+        x: xPos, y: yPos, w: 3.5, h: 3.5,
+        fill: { color: '131B2E' },
+        line: { color: '2E3D5B', width: 1 },
+        rectRadius: 0.1
+      });
+
+      slide.addText(g.title, { x: xPos + 0.2, y: yPos + 0.3, w: 3.1, fontSize: 16, bold: true, color: '818CF8' });
+      slide.addText(g.desc, { x: xPos + 0.2, y: yPos + 1.0, w: 3.1, h: 2.0, fontSize: 13, color: '94A3B8', valign: 'top' });
+    });
   });
 
-  pptx.writeFile({ fileName: 'AI_Generated_Presentation.pptx' });
+  pptx.writeFile({ fileName: 'Next_Gamma_Presentation.pptx' });
 }
 </script>
 
