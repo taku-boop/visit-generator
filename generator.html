@@ -15,7 +15,7 @@
   header{background:#111827;color:#fff;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
   header h1{font-size:17px;margin:0;font-weight:700;letter-spacing:.02em;}
   header .cfg{font-size:12px;color:#9ca3af;}
-  header input{background:#1f2937;border:1px solid #374151;color:#fff;border-radius:6px;padding:5px 8px;font-size:12px;width:260px;}
+  header input{background:#1f2937;border:1px solid #374151;color:#fff;border-radius:6px;padding:5px 8px;font-size:12px;width:340px;}
   main{max-width:1180px;margin:0 auto;padding:24px 20px 80px;}
   .panel{background:var(--panel);border-radius:12px;padding:20px 22px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
   .panel h2{font-size:14px;margin:0 0 12px;color:#374151;font-weight:700;display:flex;align-items:center;gap:6px;}
@@ -117,7 +117,7 @@
   <h1>📊 訪問資料ジェネレーター（β）</h1>
   <div class="cfg">
     GASエンドポイント：
-    <input id="gasUrl" placeholder="https://script.google.com/macros/s/.../exec（未設定なら簡易生成で動作）">
+    <input id="gasUrl" value="https://script.google.com/macros/s/AKfycbzOKiNjXY1dvRq2m4ki6SLN410bunn2qo7sHGrXodxS4fDxwCi5I_2hadsovYAfZhA3/exec">
   </div>
 </header>
 
@@ -302,7 +302,7 @@ const COMPANIES = {
   crosseffect: {
     key:'crosseffect', name:'株式会社クロスエフェクト', short:'クロスエフェクト', tagShort:'CROSS EFFECT',
     tagline:'世界最速の開発支援企業',
-    facts:'2001年8月設立／京都市伏見区／代表 竹田正俊／事業内容：プロダクトデザイン・樹脂筐体設計、3Dスキャニング、光造形による3D開発試作、真空注型、小ロット生産、医療系ものづくり・臓器モデル・CTスキャンサービス。ミッションは「速さを追求し、世界の開発案件を支援」。アジャイル開発により開発期間を圧縮し、コスト低減・問題の早期発見を実現。クロスデザイン・クロスメディカルのグループ親会社。'
+    facts:'2001年8月設立／京都市伏見区／代表 竹田正俊／事業内容：プロダクトデザイン・樹脂筐体設計、3Dスキャニング、光造形による3D開発試作、真空注型、小ロット生産、医療系ものづくり・臓器モデル・CTスキャンサービス。ミッションは「速さを追求し、世界の開発案件を支援」。アジャイル開発により開発期間を圧縮し、コスト低減・問題の早期発見・データでの手戻り対応を実現。クロスデザイン・クロスメディカルのグループ親会社。'
   },
   crossdesign: {
     key:'crossdesign', name:'株式会社クロスデザイン', short:'クロスデザイン', tagShort:'CROSS DESIGN',
@@ -333,7 +333,6 @@ function getGenControls(){
   };
 }
 
-// 安全なフェッチ通信関数
 async function fetchSafe(url, bodyData) {
   return fetch(url, {
     method: 'POST',
@@ -385,7 +384,7 @@ async function createOutline(){
   const controls = getGenControls();
 
   if(!gasUrl){
-    statusEl.textContent = 'アウトライン機能はGAS連携（AI）が必要です。簡易生成をご利用ください。';
+    statusEl.textContent = 'アウトライン機能はGAS連携（AI）が必要です。';
     return;
   }
   statusEl.textContent = 'アウトライン作成中…';
