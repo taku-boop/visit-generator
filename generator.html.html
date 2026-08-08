@@ -3,439 +3,179 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>訪問資料ジェネレーター</title>
-<!-- PptxGenJS CDN -->
+<title>訪問資料作成ツール</title>
+<!-- PowerPoint出力ライブラリ -->
 <script src="https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <style>
-  :root{
-    --bg:#f4f5f7; --panel:#ffffff; --ink:#1a1a1a; --sub:#6b7280; --line:#e5e7eb;
-    --accent:#d61c2e; /* red-corporate */
+  body {
+    margin: 0;
+    font-family: "ヒラギノ角ゴ ProN", "Noto Sans JP", メイリオ, sans-serif;
+    background: #f4f5f7;
+    color: #1a1a1a;
   }
-  *{box-sizing:border-box;}
-  body{margin:0;font-family:"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;background:var(--bg);color:var(--ink);}
-  header{background:#111827;color:#fff;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
-  header h1{font-size:17px;margin:0;font-weight:700;letter-spacing:.02em;}
-  header .cfg{font-size:12px;color:#9ca3af;}
-  header input{background:#1f2937;border:1px solid #374151;color:#fff;border-radius:6px;padding:5px 8px;font-size:12px;width:260px;}
-  main{max-width:1180px;margin:0 auto;padding:24px 20px 80px;}
-  .panel{background:var(--panel);border-radius:12px;padding:20px 22px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
-  .panel h2{font-size:14px;margin:0 0 12px;color:#374151;font-weight:700;display:flex;align-items:center;gap:6px;}
-  .panel h2 .num{background:var(--ink);color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;}
-  textarea{width:100%;min-height:160px;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:13px;font-family:inherit;resize:vertical;}
-  .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;}
-  .tpl-card{flex:1;min-width:180px;border:2px solid var(--line);border-radius:10px;padding:14px;cursor:pointer;transition:.15s;}
-  .tpl-card.active{border-color:var(--ink);box-shadow:0 0 0 3px rgba(0,0,0,.06);}
-  .tpl-swatch{height:56px;border-radius:6px;margin-bottom:10px;}
-  .tpl-swatch.tpl-red{background:linear-gradient(135deg,#fff 55%,#d61c2e 55%);border:1px solid var(--line);}
-  .tpl-swatch.tpl-navy{background:linear-gradient(135deg,#0f2a4a 45%,#eef2f7 45%);}
-  .tpl-swatch.tpl-mono{background:linear-gradient(135deg,#f3f4f6 50%,#1a1a1a 50%);}
-  .tpl-card .name{font-weight:700;font-size:13px;}
-  .tpl-card .desc{font-size:11px;color:var(--sub);margin-top:2px;}
-  .co-card{flex:1;min-width:200px;}
-  .co-card .name{font-weight:800;font-size:13px;}
-  .co-card .tagline{font-size:11px;color:var(--sub);margin-top:3px;line-height:1.5;}
-  .section-label{font-size:11px;color:var(--sub);font-weight:700;margin:16px 0 4px;}
-  .btn{border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;}
-  .btn-primary{background:var(--ink);color:#fff;}
-  .btn-primary:hover{background:#000;}
-  .btn-outline{background:#fff;border:1px solid var(--line);color:var(--ink);}
-  .btn-outline:hover{background:#f3f4f6;}
-  .btn:disabled{opacity:.45;cursor:not-allowed;}
-  .toolbar{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;align-items:center;}
-  .status{font-size:12px;color:var(--sub);}
-
-  #editorSection{display:none;}
-  .slide-card{background:#f8f9fb;border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:16px;}
-  .slide-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
-  .slide-card-head .tag{font-size:11px;color:var(--sub);font-weight:700;}
-  .mini-btn{border:1px solid var(--line);background:#fff;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;margin-left:4px;}
-  .mini-btn:hover{background:#f3f4f6;}
-
-  /* ===== Slide preview stage (16:9) ===== */
-  .stage{width:100%;aspect-ratio:16/9;background:#fff;border-radius:6px;overflow:hidden;position:relative;box-shadow:0 0 0 1px var(--line);}
-  .stage-inner{position:absolute;inset:0;padding:6.5% 7%;display:flex;flex-direction:column;}
-  [contenteditable]{outline:none;}
-  [contenteditable]:hover{background:rgba(214,28,46,.06);}
-  [contenteditable]:focus{background:rgba(214,28,46,.10);}
-
-  /* --- template: red-corporate --- */
-  .tpl-red .stage-title{font-size:1.9em;font-weight:900;line-height:1.35;color:#1a1a1a;}
-  .tpl-red .stage-sub{font-size:.85em;color:#6b7280;margin-top:6px;}
-  .tpl-red .stage-bar{width:44px;height:5px;background:#d61c2e;margin:14px 0 16px;}
-  .tpl-red .stage-bullets{font-size:.95em;line-height:1.9;color:#2b2b2b;}
-  .tpl-red .stage-bullets li{margin-bottom:4px;}
-  .tpl-red .stage-bullets li::marker{color:#d61c2e;}
-  .tpl-red .stage-tag{font-size:.7em;font-weight:700;color:#d61c2e;letter-spacing:.08em;}
-  .tpl-red .stage-foot{position:absolute;bottom:5%;right:6%;font-size:.55em;color:#9ca3af;}
-  .tpl-red .stage-hex{position:absolute;right:5%;bottom:8%;width:60px;height:60px;background:conic-gradient(#d61c2e 0 25%,#111827 25% 50%,#d61c2e 50% 75%,#111827 75% 100%);clip-path:polygon(25% 5%,75% 5%,100% 50%,75% 95%,25% 95%,0 50%);opacity:.9;}
-
-  /* --- template: navy-tech --- */
-  .tpl-navy .stage-inner{padding:0;}
-  .tpl-navy .stage-headerbar{background:#0f2a4a;color:#fff;padding:5% 7% 4%;display:flex;align-items:center;gap:14px;}
-  .tpl-navy .stage-badge{background:#fff;color:#0f2a4a;font-weight:900;border-radius:8px;padding:4px 12px;font-size:1.1em;}
-  .tpl-navy .stage-title{font-size:1.5em;font-weight:800;}
-  .tpl-navy .stage-body{padding:5% 7%;flex:1;}
-  .tpl-navy .stage-sub{font-size:.8em;color:#0f2a4a;font-weight:700;margin-bottom:10px;}
-  .tpl-navy .stage-bullets{font-size:.9em;line-height:1.85;color:#1f2937;}
-  .tpl-navy .stage-bullets li::marker{color:#0f2a4a;}
-  .tpl-navy .stage-foot{position:absolute;bottom:4%;right:6%;font-size:.55em;color:#9ca3af;}
-
-  /* --- template: mono-minimal --- */
-  .tpl-mono .stage-title{font-size:1.7em;font-weight:700;color:#111827;border-bottom:2px solid #111827;padding-bottom:10px;}
-  .tpl-mono .stage-sub{font-size:.8em;color:#6b7280;margin-top:8px;}
-  .tpl-mono .stage-bullets{font-size:.9em;line-height:1.9;color:#374151;margin-top:16px;}
-  .tpl-mono .stage-bullets li::marker{color:#9ca3af;}
-  .tpl-mono .stage-foot{position:absolute;bottom:5%;right:6%;font-size:.55em;color:#9ca3af;}
-
-  @media print{
-    body *{visibility:hidden;}
-    #printArea, #printArea *{visibility:visible;}
-    #printArea{position:absolute;left:0;top:0;width:100%;}
-    .print-page{width:297mm;height:167mm;page-break-after:always;position:relative;}
+  header {
+    background: #111827;
+    color: #ffffff;
+    padding: 18px 28px;
   }
-  #printArea{display:none;}
+  header h1 {
+    font-size: 18px;
+    margin: 0;
+  }
+  main {
+    max-width: 1000px;
+    margin: 20px auto;
+    padding: 0 20px;
+  }
+  .枠パネル {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  h2 {
+    font-size: 15px;
+    margin-top: 0;
+  }
+  textarea {
+    width: 100%;
+    height: 120px;
+    padding: 10px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-family: inherit;
+  }
+  .ボタン {
+    background: #111827;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  .ボタン:hover {
+    background: #000000;
+  }
+  .カードグループ {
+    display: flex;
+    gap: 10px;
+    margin: 10px 0;
+  }
+  .カード {
+    flex: 1;
+    border: 2px solid #dddddd;
+    border-radius: 6px;
+    padding: 10px;
+    background: #ffffff;
+    cursor: pointer;
+  }
+  .カード.選択中 {
+    border-color: #111827;
+    background: #f8f9fb;
+  }
+  .カード h3 {
+    margin: 0 0 5px 0;
+    font-size: 14px;
+  }
+  .カード p {
+    margin: 0;
+    font-size: 12px;
+    color: #666666;
+  }
+  .出力領域 {
+    background: #f8f9fb;
+    padding: 15px;
+    border: 1px solid #cccccc;
+    border-radius: 6px;
+    margin-top: 10px;
+  }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>📊 訪問資料ジェネレーター（β）</h1>
-  <div class="cfg">
-    GASエンドポイント：
-    <input id="gasUrl" placeholder="https://script.google.com/macros/s/.../exec（未設定なら簡易生成で動作）">
-  </div>
+  <h1>📊 訪問資料作成ツール（ベータ版）</h1>
 </header>
 
 <main>
-  <div class="panel">
-    <h2><span class="num">1</span>訪問メモ・議事録を貼り付け</h2>
-    <textarea id="notesInput" placeholder="例）8/8 A社訪問。担当：田中様。課題：既存の粉体成型機の外装が古く、展示会での見栄えが悪いと相談。予算感は300〜500万円、納期は年内希望。デザインだけでなく筐体設計・量産まで一貫対応できる点に興味あり。次アクション：見積提出、9月頭に再訪問。"></textarea>
+  <!-- 入力エリア -->
+  <div class="枠パネル">
+    <h2>1. 訪問メモ・議事録の入力</h2>
+    <textarea id="入力メモ" placeholder="例）8/8 A社訪問。担当：田中様。課題：既存機の外装を新しくしたい。"></textarea>
 
-    <div class="section-label">発信元（グループ会社）— 訪問先の関心に合わせて選択</div>
-    <div class="row">
-      <div class="tpl-card co-card active" data-co="crosseffect">
-        <div class="name">クロスエフェクト</div>
-        <div class="tagline">世界最速の開発支援企業。試作・小ロット生産・アジャイル開発が主軸。業界横断で提案する時のデフォルト。</div>
+    <h3>発信元（グループ会社を選択）</h3>
+    <div class="カードグループ">
+      <div class="カード 選択中" onclick="会社選択(this)">
+        <h3>クロスエフェクト</h3>
+        <p>試作・小ロット生産が主軸</p>
       </div>
-      <div class="tpl-card co-card" data-co="crossdesign">
-        <div class="name">クロスデザイン</div>
-        <div class="tagline">デザインで終わらせない、価値を生むプロダクト開発パートナー。意匠・筐体設計・CG/XRが刺さる相手向け。</div>
+      <div class="カード" onclick="会社選択(this)">
+        <h3>クロスデザイン</h3>
+        <p>プロダクトデザイン・筐体設計</p>
       </div>
-      <div class="tpl-card co-card" data-co="crossmedical">
-        <div class="name">クロスメディカル</div>
-        <div class="tagline">心臓・臓器モデル／医療系試作。医療機関・医療機器メーカー向け商談で選択。</div>
+      <div class="カード" onclick="会社選択(this)">
+        <h3>クロスメディカル</h3>
+        <p>医療系試作・臓器モデル</p>
       </div>
     </div>
 
-    <div class="section-label">デザインテンプレート</div>
-    <div class="row">
-      <div class="tpl-card active" data-tpl="tpl-red">
-        <div class="tpl-swatch tpl-red"></div>
-        <div class="name">レッド・コーポレート</div>
-        <div class="desc">crossDesign会社案内と同系統。堅め・製造業向け</div>
-      </div>
-      <div class="tpl-card" data-tpl="tpl-navy">
-        <div class="tpl-swatch tpl-navy"></div>
-        <div class="name">ネイビー・テック</div>
-        <div class="desc">IT・DX寄りの提案に。数字・ステップ訴求向き</div>
-      </div>
-      <div class="tpl-card" data-tpl="tpl-mono">
-        <div class="tpl-swatch tpl-mono"></div>
-        <div class="name">ミニマル・モノクロ</div>
-        <div class="desc">社内共有・簡易報告など軽めの用途に</div>
-      </div>
-    </div>
-    <div class="toolbar">
-      <button class="btn btn-primary" id="genBtn">資料を生成する</button>
-      <span class="status" id="genStatus"></span>
-    </div>
+    <button class="ボタン" id="生成ボタン">資料を作成する</button>
   </div>
 
-  <div class="panel" id="editorSection">
-    <h2><span class="num">2</span>内容を確認・編集（クリックで直接編集できます）</h2>
-    <div id="slideList"></div>
-    <div class="toolbar">
-      <button class="btn btn-outline" id="addSlideBtn">＋ スライドを追加</button>
-    </div>
-  </div>
-
-  <div class="panel" id="exportSection" style="display:none;">
-    <h2><span class="num">3</span>出力</h2>
-    <div class="toolbar">
-      <button class="btn btn-primary" id="exportPptxBtn">PowerPoint (.pptx) を書き出す</button>
-      <button class="btn btn-outline" id="exportPdfBtn">PDFで印刷・保存</button>
-    </div>
+  <!-- 結果確認エリア -->
+  <div class="枠パネル" id="編集エリア" style="display:none;">
+    <h2>2. 作成結果の確認・編集</h2>
+    <div id="表示場所"></div>
+    <button class="ボタン" id="出力ボタン" style="margin-top:15px; background:#d61c2e;">PowerPointファイル (.pptx) をダウンロード</button>
   </div>
 </main>
 
-<div id="printArea"></div>
-
 <script>
-const TEMPLATES = {
-  'tpl-red':  { label:'レッド・コーポレート', bg:'FFFFFF', accent:'D61C2E', ink:'1A1A1A', sub:'6B7280', bodyText:'2B2B2B' },
-  'tpl-navy': { label:'ネイビー・テック',     bg:'FFFFFF', accent:'0F2A4A', ink:'0F2A4A', sub:'6B7280', bodyText:'1F2937' },
-  'tpl-mono': { label:'ミニマル・モノクロ',   bg:'FFFFFF', accent:'111827', ink:'111827', sub:'6B7280', bodyText:'374151' }
-};
-
-const COMPANIES = {
-  crosseffect: {
-    key:'crosseffect', name:'株式会社クロスエフェクト', short:'クロスエフェクト', tagShort:'CROSS EFFECT',
-    tagline:'世界最速の開発支援企業',
-    facts:'2001年8月設立／京都市伏見区／代表 竹田正俊／事業内容：プロダクトデザイン・樹脂筐体設計、3Dスキャニング、光造形による3D開発試作、真空注型、小ロット生産、医療系ものづくり・臓器モデル・CTスキャンサービス。ミッションは「速さを追求し、世界の開発案件を支援」。アジャイル開発により開発期間を圧縮し、コスト低減・問題の早期発見を実現。クロスデザイン・クロスメディカルのグループ親会社。'
-  },
-  crossdesign: {
-    key:'crossdesign', name:'株式会社クロスデザイン', short:'クロスデザイン', tagShort:'CROSS DESIGN',
-    tagline:'デザインで終わらせない、市場で価値を生むプロダクトまで創る',
-    facts:'2022年6月設立／クロスエフェクトのグループ会社／事業内容：プロダクトデザイン、筐体設計、3Dモデリング、リバースエンジニアリング、CG動画制作、XR(VR)関連。Digital・Design・筐体設計（Mechanical）を融合し、構想から量産・価値化・進化までを一貫対応。Rapid Designによる高速デザインが強み。GOOD DESIGN賞受賞実績多数。'
-  },
-  crossmedical: {
-    key:'crossmedical', name:'株式会社クロスメディカル', short:'クロスメディカル', tagShort:'CROSS MEDICAL',
-    tagline:'精度の高い心臓・臓器モデルで医療を支える',
-    facts:'クロスエフェクトのグループ会社／事業内容：心臓モデル・各種臓器モデルの製造販売、医療系試作、メディカルデバイスの試作。CTスキャンデータを立体化し、柔らかい3Dモデルで術前トレーニングを可能にする。国立循環器病センター内「オープンイノベーションラボ」入居。AMED事業として心臓シミュレータープロジェクトを推進、若手外科医の育成に貢献。'
-  }
-};
-
-let state = {
-  template: 'tpl-red',
-  companyKey: 'crosseffect',
-  companyName: COMPANIES.crosseffect.name,
-  slides: []
-};
-
-// ---- template picker ----
-document.querySelectorAll('.tpl-card[data-tpl]').forEach(card=>{
-  card.addEventListener('click', ()=>{
-    document.querySelectorAll('.tpl-card[data-tpl]').forEach(c=>c.classList.remove('active'));
-    card.classList.add('active');
-    state.template = card.dataset.tpl;
-    renderSlides();
+function 会社選択(要素) {
+  var 全カード = document.querySelectorAll('.カード');
+  全カード.forEach(function(c) {
+    c.classList.remove('選択中');
   });
-});
+  要素.classList.add('選択中');
+}
 
-// ---- company picker ----
-document.querySelectorAll('.co-card').forEach(card=>{
-  card.addEventListener('click', ()=>{
-    document.querySelectorAll('.co-card').forEach(c=>c.classList.remove('active'));
-    card.classList.add('active');
-    state.companyKey = card.dataset.co;
-    state.companyName = COMPANIES[state.companyKey].name;
-    renderSlides();
-  });
-});
+window.addEventListener('DOMContentLoaded', function() {
+  var 入力メモ = document.getElementById('入力メモ');
+  var 生成ボタン = document.getElementById('生成ボタン');
+  var 編集エリア = document.getElementById('編集エリア');
+  var 表示場所 = document.getElementById('表示場所');
+  var 出力ボタン = document.getElementById('出力ボタン');
 
-// ---- generation ----
-document.getElementById('genBtn').addEventListener('click', generate);
-
-async function generate(){
-  const notes = document.getElementById('notesInput').value.trim();
-  const statusEl = document.getElementById('genStatus');
-  if(!notes){ statusEl.textContent = '訪問メモを入力してください。'; return; }
-  const gasUrl = document.getElementById('gasUrl').value.trim();
-  statusEl.textContent = '生成中…';
-  document.getElementById('genBtn').disabled = true;
-
-  try{
-    let slides;
-    if(gasUrl){
-      slides = await generateViaGAS(notes, gasUrl, state.companyKey);
-    }else{
-      slides = fallbackGenerate(notes);
-      statusEl.textContent = 'GAS未設定のため簡易ロジックで生成しました。';
+  生成ボタン.addEventListener('click', function() {
+    var 内容 = 入力メモ.value.trim();
+    if (!内容) {
+      alert('訪問メモを入力してください。');
+      return;
     }
-    state.slides = slides;
-    renderSlides();
-    document.getElementById('editorSection').style.display = 'block';
-    document.getElementById('exportSection').style.display = 'block';
-    if(gasUrl) statusEl.textContent = '生成完了。内容を確認・編集してください。';
-  }catch(e){
-    console.error(e);
-    statusEl.textContent = '生成に失敗しました：' + e.message;
-  }finally{
-    document.getElementById('genBtn').disabled = false;
-  }
-}
-
-async function generateViaGAS(notes, url, companyKey){
-  const res = await fetch(url, {
-    method:'POST',
-    headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body: JSON.stringify({ notes, companyKey })
-  });
-  if(!res.ok) throw new Error('サーバーエラー ' + res.status);
-  const data = await res.json();
-  if(data.error) throw new Error(data.error);
-  return data.slides;
-}
-
-function fallbackGenerate(notes){
-  const lines = notes.split(/\n+/).map(l=>l.trim()).filter(Boolean);
-  const co = COMPANIES[state.companyKey];
-  const title = lines[0] ? lines[0].slice(0, 28) : `${co.short} 訪問記録`;
-  const rest = lines.slice(1);
-  const chunks = [];
-  for(let i=0;i<rest.length;i+=4){ chunks.push(rest.slice(i,i+4)); }
-  const slides = [{ heading: title, subhead: `${new Date().toLocaleDateString('ja-JP')}｜${co.tagline}`, bullets: [], isTitle:true }];
-  if(chunks.length===0){
-    slides.push({ heading:'訪問メモ', subhead:'', bullets:[notes] });
-  }else{
-    chunks.forEach((c,i)=>{
-      slides.push({ heading: i===0 ? '訪問概要' : `補足 ${i}`, subhead:'', bullets:c });
-    });
-  }
-  return slides;
-}
-
-// ---- editor rendering ----
-function renderSlides(){
-  const list = document.getElementById('slideList');
-  list.innerHTML = '';
-  state.slides.forEach((s, idx)=>{
-    const card = document.createElement('div');
-    card.className = 'slide-card';
-    card.innerHTML = `
-      <div class="slide-card-head">
-        <span class="tag">SLIDE ${idx+1}${s.isTitle ? '（表紙）' : ''}</span>
-        <span>
-          <button class="mini-btn" data-act="up" data-idx="${idx}">↑</button>
-          <button class="mini-btn" data-act="down" data-idx="${idx}">↓</button>
-          <button class="mini-btn" data-act="del" data-idx="${idx}">削除</button>
-        </span>
-      </div>
-      <div class="stage ${state.template}">
-        <div class="stage-inner" id="stage-${idx}"></div>
-      </div>
-    `;
-    list.appendChild(card);
-    renderStage(document.getElementById(`stage-${idx}`), s, idx);
+    表示場所.innerHTML = '<div class="出力領域">' +
+      '<h3 contenteditable="true">訪問概要報告</h3>' +
+      '<p contenteditable="true">' + 内容 + '</p></div>';
+    
+    編集エリア.style.display = 'block';
   });
 
-  list.querySelectorAll('.mini-btn').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const idx = +btn.dataset.idx;
-      const act = btn.dataset.act;
-      if(act==='del'){ state.slides.splice(idx,1); }
-      if(act==='up' && idx>0){ [state.slides[idx-1], state.slides[idx]] = [state.slides[idx], state.slides[idx-1]]; }
-      if(act==='down' && idx<state.slides.length-1){ [state.slides[idx+1], state.slides[idx]] = [state.slides[idx], state.slides[idx+1]]; }
-      renderSlides();
-    });
-  });
-}
-
-function renderStage(el, s, idx){
-  const bulletsHtml = (s.bullets||[]).map(b=>`<li contenteditable="true" data-idx="${idx}" data-field="bullet">${escapeHtml(b)}</li>`).join('');
-  if(state.template === 'tpl-navy'){
-    el.innerHTML = `
-      <div class="stage-headerbar">
-        <div class="stage-badge">${String(idx+1).padStart(2,'0')}</div>
-        <div class="stage-title" contenteditable="true" data-idx="${idx}" data-field="heading">${escapeHtml(s.heading||'')}</div>
-      </div>
-      <div class="stage-body">
-        <div class="stage-sub" contenteditable="true" data-idx="${idx}" data-field="subhead">${escapeHtml(s.subhead||'')}</div>
-        <ul class="stage-bullets">${bulletsHtml}</ul>
-      </div>
-      <div class="stage-foot">${escapeHtml(state.companyName)}</div>
-    `;
-  }else{
-    const tagShort = COMPANIES[state.companyKey].tagShort;
-    el.innerHTML = `
-      <div class="stage-tag">${tagShort} VISIT REPORT</div>
-      <div class="stage-title" contenteditable="true" data-idx="${idx}" data-field="heading">${escapeHtml(s.heading||'')}</div>
-      <div class="stage-sub" contenteditable="true" data-idx="${idx}" data-field="subhead">${escapeHtml(s.subhead||'')}</div>
-      <div class="stage-bar"></div>
-      <ul class="stage-bullets">${bulletsHtml}</ul>
-      <div class="stage-foot">${escapeHtml(state.companyName)}</div>
-      ${state.template==='tpl-red' ? '<div class="stage-hex"></div>' : ''}
-    `;
-  }
-  el.querySelectorAll('[contenteditable]').forEach(node=>{
-    node.addEventListener('blur', onEdit);
-  });
-}
-
-function onEdit(e){
-  const idx = +e.target.dataset.idx;
-  const field = e.target.dataset.field;
-  if(field==='bullet'){
-    const bulletsList = [...e.target.parentElement.children].map(li=>li.textContent);
-    state.slides[idx].bullets = bulletsList;
-  }else{
-    state.slides[idx][field] = e.target.textContent;
-  }
-}
-
-function escapeHtml(str){
-  return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-document.getElementById('addSlideBtn').addEventListener('click', ()=>{
-  state.slides.push({ heading:'新しいスライド', subhead:'', bullets:['項目1'] });
-  renderSlides();
-});
-
-// ---- export: PPTX ----
-document.getElementById('exportPptxBtn').addEventListener('click', exportPptx);
-
-function exportPptx(){
-  if(typeof PptxGenJS === 'undefined'){
-    alert('PowerPoint出力ライブラリの読み込みに失敗しています。ネットワーク接続を確認してください。');
-    return;
-  }
-  const t = TEMPLATES[state.template];
-  const pptx = new PptxGenJS();
-  pptx.defineLayout({ name:'WIDE', width:13.333, height:7.5 });
-  pptx.layout = 'WIDE';
-
-  state.slides.forEach((s, idx)=>{
-    const slide = pptx.addSlide();
-    slide.background = { color: t.bg };
-
-    if(state.template === 'tpl-navy'){
-      slide.addShape('rect', { x:0, y:0, w:13.333, h:1.6, fill:{color:t.accent} });
-      slide.addText(String(idx+1).padStart(2,'0'), { x:0.5, y:0.4, w:1, h:0.8, fontSize:24, bold:true, color:t.accent, fill:{color:'FFFFFF'}, align:'center', valign:'middle' });
-      slide.addText(s.heading||'', { x:1.8, y:0.35, w:10.5, h:0.9, fontSize:28, bold:true, color:'FFFFFF', fontFace:'Meiryo' });
-      if(s.subhead) slide.addText(s.subhead, { x:0.6, y:1.9, w:12, h:0.5, fontSize:14, bold:true, color:t.accent, fontFace:'Meiryo' });
-      addBullets(slide, s.bullets, 0.6, 2.5, 12, 4.3, t.bodyText);
-    }else{
-      slide.addText(`${COMPANIES[state.companyKey].tagShort} VISIT REPORT`, { x:0.6, y:0.4, w:8, h:0.35, fontSize:10, bold:true, color:t.accent, charSpacing:2, fontFace:'Meiryo' });
-      slide.addText(s.heading||'', { x:0.6, y:0.75, w:11.8, h:1.1, fontSize:30, bold:true, color:t.ink, fontFace:'Meiryo' });
-      if(s.subhead) slide.addText(s.subhead, { x:0.6, y:1.75, w:11.5, h:0.4, fontSize:13, color:t.sub, fontFace:'Meiryo' });
-      slide.addShape('rect', { x:0.6, y:2.25, w:0.5, h:0.06, fill:{color:t.accent} });
-      addBullets(slide, s.bullets, 0.6, 2.6, 11.8, 4.0, t.bodyText, t.accent);
-      slide.addText(state.companyName, { x:10.5, y:7.05, w:2.4, h:0.3, fontSize:8, color:'9CA3AF', align:'right' });
+  出力ボタン.addEventListener('click', function() {
+    if (typeof PptxGenJS === 'undefined') {
+      alert('ライブラリの読み込み中です。少し待ってから再度お試しください。');
+      return;
     }
+    var パワポ = new PptxGenJS();
+    var スライド = パワポ.addSlide();
+    スライド.addText('訪問報告書', { x: 1, y: 1, fontSize: 24, bold: true });
+    スライド.addText(入力メモ.value, { x: 1, y: 2, fontSize: 14 });
+    パワポ.writeFile({ fileName: '訪問資料.pptx' });
   });
-
-  pptx.writeFile({ fileName: buildFileName('pptx') });
-}
-
-function addBullets(slide, bullets, x,y,w,h, color, bulletColor){
-  if(!bullets || bullets.length===0) return;
-  const items = bullets.map(b=>({ text:b, options:{ bullet:{ color: bulletColor||color }, breakLine:true, color, fontSize:16, fontFace:'Meiryo', paraSpaceAfter:10 } }));
-  slide.addText(items, { x,y,w,h, valign:'top' });
-}
-
-// ---- export: PDF ----
-document.getElementById('exportPdfBtn').addEventListener('click', ()=>{
-  const area = document.getElementById('printArea');
-  area.innerHTML = '';
-  state.slides.forEach((s, idx)=>{
-    const page = document.createElement('div');
-    page.className = `print-page stage ${state.template}`;
-    const inner = document.createElement('div');
-    inner.className = 'stage-inner';
-    page.appendChild(inner);
-    area.appendChild(page);
-    renderStage(inner, s, idx);
-    inner.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'));
-  });
-  window.print();
 });
-
-function buildFileName(ext){
-  const d = new Date();
-  const ds = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
-  return `visit_report_${ds}.${ext}`;
-}
 </script>
+
 </body>
 </html>
