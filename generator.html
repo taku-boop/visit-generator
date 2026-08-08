@@ -181,10 +181,37 @@
       <div style="min-width:140px;">
         <label style="font-size:11px;color:var(--sub);">カード枚数</label>
         <select id="cardCount" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;">
-          <option value="auto" selected>おまかせ（4〜7枚）</option>
-          <option value="5">5枚</option>
+          <option value="auto">おまかせ（4〜7枚）</option>
+          <option value="1">1枚</option>
+          <option value="2">2枚</option>
+          <option value="3">3枚</option>
+          <option value="4">4枚</option>
+          <option value="5" selected>5枚</option>
+          <option value="6">6枚</option>
           <option value="7">7枚</option>
+          <option value="8">8枚</option>
           <option value="9">9枚</option>
+          <option value="10">10枚</option>
+          <option value="11">11枚</option>
+          <option value="12">12枚</option>
+          <option value="13">13枚</option>
+          <option value="14">14枚</option>
+          <option value="15">15枚</option>
+          <option value="16">16枚</option>
+          <option value="17">17枚</option>
+          <option value="18">18枚</option>
+          <option value="19">19枚</option>
+          <option value="20">20枚</option>
+          <option value="21">21枚</option>
+          <option value="22">22枚</option>
+          <option value="23">23枚</option>
+          <option value="24">24枚</option>
+          <option value="25">25枚</option>
+          <option value="26">26枚</option>
+          <option value="27">27枚</option>
+          <option value="28">28枚</option>
+          <option value="29">29枚</option>
+          <option value="30">30枚</option>
         </select>
       </div>
       <div style="min-width:140px;">
@@ -271,7 +298,6 @@ const TEMPLATES = {
   'tpl-mono': { label:'ミニマル・モノクロ',   bg:'FFFFFF', accent:'111827', ink:'111827', sub:'6B7280', bodyText:'374151' }
 };
 
-// 各グループ会社の実際の事業内容・強み（AIへの要約指示のコンテキストにも使用）
 const COMPANIES = {
   crosseffect: {
     key:'crosseffect', name:'株式会社クロスエフェクト', short:'クロスエフェクト', tagShort:'CROSS EFFECT',
@@ -307,6 +333,17 @@ function getGenControls(){
   };
 }
 
+// 安全なフェッチ通信関数
+async function fetchSafe(url, bodyData) {
+  return fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'text/plain;charset=utf-8'
+    },
+    body: JSON.stringify(bodyData)
+  });
+}
+
 // ---- template picker ----
 document.querySelectorAll('.tpl-card[data-tpl]').forEach(card=>{
   card.addEventListener('click', ()=>{
@@ -317,7 +354,7 @@ document.querySelectorAll('.tpl-card[data-tpl]').forEach(card=>{
   });
 });
 
-// ---- company (group entity) picker ----
+// ---- company picker ----
 document.querySelectorAll('.co-card').forEach(card=>{
   card.addEventListener('click', ()=>{
     document.querySelectorAll('.co-card').forEach(c=>c.classList.remove('active'));
@@ -337,7 +374,7 @@ document.querySelectorAll('.dt-card').forEach(card=>{
   });
 });
 
-// ---- Step 1: outline (Gamma式 — 見出しだけ先に確認) ----
+// ---- Step 1: outline ----
 document.getElementById('outlineBtn').addEventListener('click', createOutline);
 
 async function createOutline(){
@@ -354,11 +391,7 @@ async function createOutline(){
   statusEl.textContent = 'アウトライン作成中…';
   document.getElementById('outlineBtn').disabled = true;
   try{
-    const res = await fetch(gasUrl, {
-      method:'POST',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({ mode:'outline', notes, companyKey: state.companyKey, docType: state.docType, ...controls })
-    });
+    const res = await fetchSafe(gasUrl, { mode:'outline', notes, companyKey: state.companyKey, docType: state.docType, ...controls });
     if(!res.ok) throw new Error('サーバーエラー ' + res.status);
     const data = await res.json();
     if(data.error) throw new Error(data.error);
@@ -420,11 +453,7 @@ async function expandOutline(){
   statusEl.textContent = '本文生成中…';
   document.getElementById('expandBtn').disabled = true;
   try{
-    const res = await fetch(gasUrl, {
-      method:'POST',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({ mode:'expand', notes, outline: state.outline, companyKey: state.companyKey, docType: state.docType, ...controls })
-    });
+    const res = await fetchSafe(gasUrl, { mode:'expand', notes, outline: state.outline, companyKey: state.companyKey, docType: state.docType, ...controls });
     if(!res.ok) throw new Error('サーバーエラー ' + res.status);
     const data = await res.json();
     if(data.error) throw new Error(data.error);
@@ -447,7 +476,7 @@ function showResultSections(){
   document.getElementById('exportSection').style.display = 'block';
 }
 
-// ---- Step 1(代替): アウトラインをスキップして直接生成 ----
+// ---- 直接生成 ----
 document.getElementById('genBtn').addEventListener('click', generate);
 
 async function generate(){
@@ -465,7 +494,7 @@ async function generate(){
       slides = await generateViaGAS(notes, gasUrl, state.companyKey, state.docType, controls);
     }else{
       slides = fallbackGenerate(notes);
-      statusEl.textContent = 'GAS未設定のため簡易ロジックで生成しました（AI要約を使うにはREADME参照）。';
+      statusEl.textContent = 'GAS未設定のため簡易ロジックで生成しました。';
     }
     state.slides = slides;
     renderSlides();
@@ -480,31 +509,33 @@ async function generate(){
 }
 
 async function generateViaGAS(notes, url, companyKey, docType, controls){
-  const res = await fetch(url, {
-    method:'POST',
-    headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body: JSON.stringify({ mode:'generate', notes, companyKey, docType, ...controls })
-  });
+  const res = await fetchSafe(url, { mode:'generate', notes, companyKey, docType, ...controls });
   if(!res.ok) throw new Error('サーバーエラー ' + res.status);
   const data = await res.json();
   if(data.error) throw new Error(data.error);
   return data.slides;
 }
 
-// simple offline fallback: turns notes into a title slide + bullet slides
+// offline fallback
 function fallbackGenerate(notes){
   const lines = notes.split(/\n+/).map(l=>l.trim()).filter(Boolean);
   const co = COMPANIES[state.companyKey];
   const title = lines[0] ? lines[0].slice(0, 28) : `${co.short} 訪問記録`;
   const rest = lines.slice(1);
-  const chunks = [];
-  for(let i=0;i<rest.length;i+=4){ chunks.push(rest.slice(i,i+4)); }
+  const controls = getGenControls();
+  
+  let targetCount = parseInt(controls.cardCount, 10);
+  if (isNaN(targetCount)) targetCount = Math.min(Math.max(lines.length, 4), 7);
+
   const slides = [{ heading: title, subhead: `${new Date().toLocaleDateString('ja-JP')}｜${co.tagline}`, bullets: [], isTitle:true }];
-  if(chunks.length===0){
-    slides.push({ heading:'訪問メモ', subhead:'', bullets:[notes] });
-  }else{
-    chunks.forEach((c,i)=>{
-      slides.push({ heading: i===0 ? '訪問概要' : `補足 ${i}`, subhead:'', bullets:c });
+  
+  for(let i = 1; i < targetCount; i++) {
+    const chunkIndex = (i - 1) * 3;
+    const bullets = rest.slice(chunkIndex, chunkIndex + 3);
+    slides.push({
+      heading: i === 1 ? '概要・提案背景' : `提案詳細 (${i - 1})`,
+      subhead: '',
+      bullets: bullets.length ? bullets : ['詳細な内容をこちらに入力してください。']
     });
   }
   return slides;
@@ -549,25 +580,21 @@ function renderSlides(){
 
 async function regenerateSlide(idx, btn){
   const gasUrl = document.getElementById('gasUrl').value.trim();
-  if(!gasUrl){ alert('この機能はGAS連携（AI）が必要です。README参照。'); return; }
+  if(!gasUrl){ alert('この機能はGAS連携（AI）が必要です。'); return; }
   const notes = document.getElementById('notesInput').value.trim();
   const controls = getGenControls();
   const original = btn.textContent;
   btn.textContent = '作り直し中…';
   btn.disabled = true;
   try{
-    const res = await fetch(gasUrl, {
-      method:'POST',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({
-        mode:'regenerate_slide',
-        notes,
-        companyKey: state.companyKey,
-        docType: state.docType,
-        heading: state.slides[idx].heading,
-        isTitle: !!state.slides[idx].isTitle,
-        ...controls
-      })
+    const res = await fetchSafe(gasUrl, {
+      mode:'regenerate_slide',
+      notes,
+      companyKey: state.companyKey,
+      docType: state.docType,
+      heading: state.slides[idx].heading,
+      isTitle: !!state.slides[idx].isTitle,
+      ...controls
     });
     if(!res.ok) throw new Error('サーバーエラー ' + res.status);
     const data = await res.json();
@@ -633,7 +660,7 @@ document.getElementById('addSlideBtn').addEventListener('click', ()=>{
   renderSlides();
 });
 
-// ---- refine: additional instructions on top of the generated draft ----
+// ---- refine ----
 document.getElementById('refineBtn').addEventListener('click', refine);
 
 async function refine(){
@@ -641,21 +668,17 @@ async function refine(){
   const statusEl = document.getElementById('refineStatus');
   if(!instruction){ statusEl.textContent = '追加のお願いを入力してください。'; return; }
   const gasUrl = document.getElementById('gasUrl').value.trim();
-  if(!gasUrl){ statusEl.textContent = 'この機能はGAS連携（AI）が必要です。README参照。'; return; }
+  if(!gasUrl){ statusEl.textContent = 'この機能はGAS連携（AI）が必要です。'; return; }
 
   statusEl.textContent = '反映中…';
   document.getElementById('refineBtn').disabled = true;
   try{
-    const res = await fetch(gasUrl, {
-      method:'POST',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({
-        mode:'refine',
-        companyKey: state.companyKey,
-        docType: state.docType,
-        currentSlides: state.slides,
-        instruction
-      })
+    const res = await fetchSafe(gasUrl, {
+      mode:'refine',
+      companyKey: state.companyKey,
+      docType: state.docType,
+      currentSlides: state.slides,
+      instruction
     });
     if(!res.ok) throw new Error('サーバーエラー ' + res.status);
     const data = await res.json();
@@ -672,29 +695,25 @@ async function refine(){
   }
 }
 
-// ---- strict pre-submission review ----
+// ---- strict review ----
 document.getElementById('reviewBtn').addEventListener('click', runReview);
 
 async function runReview(){
   const statusEl = document.getElementById('reviewStatus');
   const resultEl = document.getElementById('reviewResult');
   const gasUrl = document.getElementById('gasUrl').value.trim();
-  if(!gasUrl){ statusEl.textContent = 'この機能はGAS連携（AI）が必要です。README参照。'; return; }
+  if(!gasUrl){ statusEl.textContent = 'この機能はGAS連携（AI）が必要です。'; return; }
   if(!state.slides.length){ statusEl.textContent = '先に資料を生成してください。'; return; }
 
   statusEl.textContent = 'チェック中…';
   resultEl.innerHTML = '';
   document.getElementById('reviewBtn').disabled = true;
   try{
-    const res = await fetch(gasUrl, {
-      method:'POST',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({
-        mode:'review',
-        companyKey: state.companyKey,
-        docType: state.docType,
-        slides: state.slides
-      })
+    const res = await fetchSafe(gasUrl, {
+      mode:'review',
+      companyKey: state.companyKey,
+      docType: state.docType,
+      slides: state.slides
     });
     if(!res.ok) throw new Error('サーバーエラー ' + res.status);
     const data = await res.json();
@@ -783,7 +802,7 @@ function addBullets(slide, bullets, x,y,w,h, color, bulletColor){
   slide.addText(items, { x,y,w,h, valign:'top' });
 }
 
-// ---- export: PDF (print) ----
+// ---- export: PDF ----
 document.getElementById('exportPdfBtn').addEventListener('click', ()=>{
   const area = document.getElementById('printArea');
   area.innerHTML = '';
