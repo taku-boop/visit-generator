@@ -3,106 +3,108 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Next-Gamma AI Presentation Engine</title>
+<title>AI 訪問資料ジェネレーター (Gamma Style)</title>
 <!-- PptxGenJS CDN -->
 <script src="https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <style>
   :root {
-    --bg: #090d16;
-    --panel-bg: #131b2e;
-    --card-bg: #1c2942;
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
-    --accent: #6366f1;
-    --accent-glow: rgba(99, 102, 241, 0.35);
-    --border: #2e3d5b;
+    --bg-dark: #0b0f17;
+    --panel-dark: #151c28;
+    --card-dark: #1e293b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --accent-purple: #818cf8;
+    --accent-pink: #c084fc;
+    --accent-blue: #38bdf8;
+    --border-color: #334155;
   }
 
-  /* Theme Overrides */
-  body.theme-light {
-    --bg: #f8fafc;
-    --panel-bg: #ffffff;
-    --card-bg: #f1f5f9;
-    --text-primary: #0f172a;
-    --text-secondary: #64748b;
-    --border: #e2e8f0;
+  body.light-mode {
+    --bg-dark: #f8fafc;
+    --panel-dark: #ffffff;
+    --card-dark: #f1f5f9;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
   }
 
   * { box-sizing: border-box; }
   body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text-primary);
+    background: var(--bg-dark);
+    color: var(--text-main);
     transition: background 0.3s, color 0.3s;
     padding-bottom: 80px;
   }
 
   header {
-    background: var(--panel-bg);
-    border-bottom: 1px solid var(--border);
+    background: var(--panel-dark);
+    border-bottom: 1px solid var(--border-color);
     padding: 16px 32px;
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
-  header h1 { font-size: 18px; margin: 0; font-weight: 800; background: linear-gradient(135deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  header h1 {
+    font-size: 18px; margin: 0; font-weight: 800;
+    background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
   
-  main { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+  main { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
 
-  /* Prompt Panel */
   .panel {
-    background: var(--panel-bg);
-    border: 1px solid var(--border);
+    background: var(--panel-dark);
+    border: 1px solid var(--border-color);
     border-radius: 16px;
     padding: 24px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   }
 
   textarea {
     width: 100%;
-    height: 140px;
-    background: var(--bg);
-    border: 1px solid var(--border);
+    height: 160px;
+    background: var(--bg-dark);
+    border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 16px;
-    color: var(--text-primary);
+    color: var(--text-main);
     font-size: 14px;
+    line-height: 1.6;
     outline: none;
     transition: border 0.2s;
   }
-  textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  textarea:focus { border-color: var(--accent-purple); }
 
   .controls { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
   .btn-group { display: flex; gap: 10px; }
 
   .btn {
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent-purple), #6366f1);
     color: #fff;
     border: none;
     padding: 12px 24px;
     border-radius: 8px;
     font-weight: 700;
     cursor: pointer;
-    transition: transform 0.1s, background 0.2s;
+    transition: transform 0.1s, opacity 0.2s;
   }
-  .btn:hover { transform: translateY(-1px); }
-  .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text-primary); }
+  .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-secondary { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); }
 
-  /* Theme selector */
-  .theme-selector { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--text-secondary); }
-  .theme-btn { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
-  .theme-btn.active { border-color: var(--accent); }
+  .theme-toggle { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--text-muted); }
+  .theme-btn { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+  .theme-btn.active { border-color: var(--accent-purple); }
 
-  /* Gamma Canvas Section */
+  /* Canvas (Gamma Deck View) */
   #presentationCanvas { margin-top: 40px; display: flex; flex-direction: column; gap: 32px; }
 
-  /* Slide Block (Gamma Card) */
   .gamma-card {
-    background: var(--panel-bg);
-    border: 1px solid var(--border);
+    background: var(--panel-dark);
+    border: 1px solid var(--border-color);
     border-radius: 20px;
-    padding: 40px;
+    padding: 36px;
     box-shadow: 0 20px 40px rgba(0,0,0,0.3);
     position: relative;
     overflow: hidden;
@@ -112,135 +114,183 @@
     content: '';
     position: absolute;
     top: 0; left: 0; width: 100%; height: 4px;
-    background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899);
+    background: linear-gradient(90deg, var(--accent-purple), var(--accent-pink), var(--accent-blue));
   }
 
-  .card-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
-  .card-badge { font-size: 11px; font-weight: 800; color: var(--accent); letter-spacing: 1.5px; text-transform: uppercase; }
+  .card-badge { font-size: 11px; font-weight: 800; color: var(--accent-purple); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 12px; display: block; }
   
   .card-title {
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 800;
-    margin: 0 0 24px 0;
-    color: var(--text-primary);
+    margin: 0 0 20px 0;
+    color: var(--text-main);
     outline: none;
   }
 
-  /* Grid Layout inside Gamma Card */
   .card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 16px;
   }
 
   .grid-box {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
+    background: var(--card-dark);
+    border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 20px;
     transition: border-color 0.2s;
   }
-  .grid-box:hover { border-color: var(--accent); }
+  .grid-box:hover { border-color: var(--accent-purple); }
 
-  .grid-box h4 { margin: 0 0 8px 0; font-size: 15px; color: var(--accent); outline: none; }
-  .grid-box p { margin: 0; font-size: 13px; color: var(--text-secondary); line-height: 1.6; outline: none; }
+  .grid-box h4 { margin: 0 0 10px 0; font-size: 15px; color: var(--accent-purple); outline: none; }
+  .grid-box ul { margin: 0; padding-left: 18px; color: var(--text-muted); font-size: 13px; line-height: 1.7; }
+  .grid-box li { outline: none; margin-bottom: 4px; }
 
 </style>
 </head>
 <body>
 
 <header>
-  <h1>⚡ Next-Gamma Engine</h1>
-  <div class="theme-selector">
+  <h1>✨ Gamma AI Presentation Generator</h1>
+  <div class="theme-toggle">
     <span>テーマ:</span>
-    <div class="theme-btn active" style="background:#090d16;" onclick="setTheme('dark', this)"></div>
-    <div class="theme-btn" style="background:#f8fafc;" onclick="setTheme('light', this)"></div>
+    <div class="theme-btn active" style="background:#0b0f17;" onclick="toggleTheme('dark', this)"></div>
+    <div class="theme-btn" style="background:#f8fafc;" onclick="toggleTheme('light', this)"></div>
   </div>
 </header>
 
 <main>
-  <!-- Prompt Box -->
   <div class="panel">
-    <h2 style="margin-top:0; font-size:16px;">AIプレゼンテーション・生成プロンプト</h2>
-    <textarea id="promptInput" placeholder="訪問メモや提案したい内容を入力してください。
-例: 8/8 A社訪問。担当：田中様。課題：既存の粉体成型機の外装が古く、展示会での見栄えが悪い。予算300〜500万。一貫対応に興味あり。次回見積提出。"></textarea>
+    <h2 style="margin-top:0; font-size:16px;">AI プレゼンスライド自動生成プロンプト</h2>
+    <textarea id="promptInput" placeholder="訪問メモや提案内容をそのまま貼り付けてください。AIが自動解析してスライド構造化します。
+
+例）8/8 A社訪問。担当：田中様。
+課題：既存の粉体成型機の外装が古く、展示会での見栄えが悪いと相談。
+提案：デザインだけでなく筐体設計・量産まで一貫対応できる点に興味あり。
+条件：予算感は300〜500万円、納期は年内希望。
+次アクション：見積提出、9月頭に再訪問。"></textarea>
 
     <div class="controls">
       <div class="btn-group">
-        <button class="btn" onclick="generateGammaDeck()">✨ プレゼンカードを自動生成</button>
+        <button class="btn" onclick="generateDeck()">✨ AIスライドを生成する</button>
       </div>
       <div class="btn-group">
-        <button class="btn btn-secondary" id="exportBtn" style="display:none;" onclick="exportPPTX()">📥 PowerPoint (.pptx) 出力</button>
+        <button class="btn btn-secondary" id="exportBtn" style="display:none;" onclick="exportPPTX()">📥 PowerPoint (.pptx) を出力</button>
       </div>
     </div>
   </div>
 
-  <!-- Deck Output Canvas -->
   <div id="presentationCanvas"></div>
 </main>
 
 <script>
 let deckData = [];
 
-function setTheme(mode, btn) {
+function toggleTheme(mode, btn) {
   document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   if (mode === 'light') {
-    document.body.classList.add('theme-light');
+    document.body.classList.add('light-mode');
   } else {
-    document.body.classList.remove('theme-light');
+    document.body.classList.remove('light-mode');
   }
 }
 
-// AI Structure Parsing Engine
-function generateGammaDeck() {
-  const input = document.getElementById('promptInput').value.trim();
-  if(!input) {
-    alert("プロンプトを入力してください。");
-    return;
-  }
+/* ========================================================
+   クライアントサイド テキスト解析エンジン (要約・構造化)
+======================================================== */
+function parseTextToDeck(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  
+  // キーワード抽出・分類ロジック
+  let companyOrClient = "訪問先企業";
+  let person = "";
+  let issues = [];
+  let proposals = [];
+  let conditions = [];
+  let nextActions = [];
+  let generalNotes = [];
 
-  const lines = input.split('\n').filter(l => l.trim() !== '');
+  lines.forEach(line => {
+    // 会社名・担当者
+    if (line.includes("訪問") || line.includes("社") || line.includes("担当")) {
+      const mPerson = line.match(/担当[:：]?\s*([^\s,、。]+)/);
+      if (mPerson) person = mPerson[1];
+      const mComp = line.match(/([A-Za-z0-9一-龠ぁ-ゔァ-ヴー]+(?:社|様|御中))/);
+      if (mComp) companyOrClient = mComp[1];
+    }
 
-  // Generate Gamma-Style Block-Structured Data
-  deckData = [
+    // 課題・悩み
+    if (line.includes("課題") || line.includes("悩み") || line.includes("古い") || line.includes("困") || line.includes("相談") || line.includes("見栄え")) {
+      issues.push(line.replace(/^(課題|悩み)[:：]?\s*/, ''));
+    }
+    // 提案・強み・関心
+    else if (line.includes("提案") || line.includes("興味") || line.includes("対応") || line.includes("一貫") || line.includes("強み") || line.includes("デザイン")) {
+      proposals.push(line.replace(/^(提案|関心|強み)[:：]?\s*/, ''));
+    }
+    // 条件（予算・納期）
+    else if (line.includes("予算") || line.includes("納期") || line.includes("条件") || line.includes("万") || line.includes("月")) {
+      conditions.push(line.replace(/^(条件|予算|納期)[:：]?\s*/, ''));
+    }
+    // ネクストアクション
+    else if (line.includes("次") || line.includes("アクション") || line.includes("見積") || line.includes("再訪") || line.includes("提出") || line.includes("予定")) {
+      nextActions.push(line.replace(/^(次|ネクストアクション|次アクション)[:：]?\s*/, ''));
+    }
+    else {
+      generalNotes.push(line);
+    }
+  });
+
+  // デフォルト埋め合わせ処理（入力が少ない場合も崩さない）
+  if (issues.length === 0) issues = [lines[0] || "現状の課題抽出および要件ヒアリング"];
+  if (proposals.length === 0) proposals = ["構想・デザインから設計・試作まで一貫サポート", "アジャイル開発による納期圧縮提案"];
+  if (conditions.length === 0) conditions = ["予算・納期の最適化プラン検討"];
+  if (nextActions.length === 0) nextActions = ["お見積り・ご提案書の作成", "次回お打ち合わせ設定"];
+
+  return [
     {
-      badge: 'VISIT SUMMARY',
-      title: lines[0] ? lines[0].substring(0, 35) : '訪問対話メモ報告',
+      badge: "EXECUTIVE SUMMARY",
+      title: `${companyOrClient} 様 訪問対話・プロジェクト要約`,
       grid: [
-        { title: '訪問目的', desc: 'ヒアリング及び課題認識の共有' },
-        { title: '対象案件', desc: '新意匠・筐体開発プロジェクト' },
-        { title: 'ステータス', desc: '要件検討・次回見積提案フェーズ' }
+        { title: "訪問概要", items: [`ターゲット: ${companyOrClient}`, person ? `ご担当者: ${person}` : "担当者ヒアリング完了", `対話日時: ${new Date().toLocaleDateString('ja-JP')}`] },
+        { title: "主要テーマ", items: generalNotes.length > 0 ? generalNotes.slice(0, 3) : ["新意匠・筐体開発の検討", "仕様および製造プロセスの見直し"] }
       ]
     },
     {
-      badge: 'KEY ISSUES & REQUIREMENTS',
-      title: '現状の課題とクライアント要求',
+      badge: "ISSUES & REQUIREMENTS",
+      title: "現状の課題およびご要望",
       grid: [
-        { title: '課題 01', desc: lines[1] || '現行製品のデザイン老朽化' },
-        { title: '課題 02', desc: lines[2] || '展示会に向けた見栄え・意匠性の刷新' },
-        { title: '予算・納期', desc: lines[3] || '予算300〜500万 / 年内納品希望' }
+        { title: "直面している課題", items: issues },
+        { title: "前提条件・制約", items: conditions }
       ]
     },
     {
-      badge: 'CORE PROPOSAL',
-      title: '弊社からの提供価値・ソリューション',
+      badge: "PROPOSED SOLUTION",
+      title: "弊社からのソリューション提案",
       grid: [
-        { title: '一貫サポート', desc: 'デザイン構想から筐体設計・試作・小ロット量産まで対応' },
-        { title: 'アジャイル対応', desc: '超高速3Dプロトタイピングによる納期短縮' },
-        { title: '品質保証', desc: '製造・量産を見据えた実現性の高い構造設計提案' }
+        { title: "提案価値・アプローチ", items: proposals },
+        { title: "提供可能な強み", items: ["デザイン×筐体設計×試作の一貫体制", "開発スピードの最大化とリスク低減"] }
       ]
     },
     {
-      badge: 'NEXT STEPS',
-      title: '今後の進め方とロードマップ',
+      badge: "NEXT STEPS",
+      title: "今後の進め方（ネクストアクション）",
       grid: [
-        { title: 'Step 1', desc: '概算見積書および概念デザインラフの提出' },
-        { title: 'Step 2', desc: '次回打ち合わせでの技術仕様・スケジュールの擦り合わせ' }
+        { title: "次回家アクション項目", items: nextActions },
+        { title: "スケジュール目安", items: ["提案書・見積書のご提出", "技術仕様および試作プロセスの最終確定"] }
       ]
     }
   ];
+}
 
+function generateDeck() {
+  const input = document.getElementById('promptInput').value.trim();
+  if (!input) {
+    alert("プロンプト（訪問メモ）を入力してください。");
+    return;
+  }
+
+  deckData = parseTextToDeck(input);
   renderCanvas();
   document.getElementById('exportBtn').style.display = 'inline-block';
 }
@@ -256,14 +306,16 @@ function renderCanvas() {
     let gridHtml = card.grid.map((g, gIdx) => `
       <div class="grid-box">
         <h4 contenteditable="true" onblur="deckData[${cIdx}].grid[${gIdx}].title = this.innerText">${g.title}</h4>
-        <p contenteditable="true" onblur="deckData[${cIdx}].grid[${gIdx}].desc = this.innerText">${g.desc}</p>
+        <ul>
+          ${g.items.map((item, iIdx) => `
+            <li contenteditable="true" onblur="deckData[${cIdx}].grid[${gIdx}].items[${iIdx}] = this.innerText">${item}</li>
+          `).join('')}
+        </ul>
       </div>
     `).join('');
 
     cardEl.innerHTML = `
-      <div class="card-header">
-        <span class="card-badge">${card.badge}</span>
-      </div>
+      <span class="card-badge">${card.badge}</span>
       <h3 class="card-title" contenteditable="true" onblur="deckData[${cIdx}].title = this.innerText">${card.title}</h3>
       <div class="card-grid">${gridHtml}</div>
     `;
@@ -272,10 +324,10 @@ function renderCanvas() {
   });
 }
 
-// Export Structured Deck to PowerPoint (.pptx)
+// PowerPoint (.pptx) 高精度出力
 function exportPPTX() {
   if (typeof PptxGenJS === 'undefined') {
-    alert('ライブラリ読込中... 数秒待ってから再試行してください。');
+    alert('ライブラリ読み込み中... 数秒待ってから再試行してください。');
     return;
   }
 
@@ -284,34 +336,36 @@ function exportPPTX() {
 
   deckData.forEach(card => {
     const slide = pptx.addSlide();
-    
-    // Background
-    slide.background = { color: '090D16' };
+    slide.background = { color: '0B0F17' };
 
-    // Badge / Header
+    // Badge & Header
     slide.addText(card.badge, { x: 0.8, y: 0.5, fontSize: 11, bold: true, color: '818CF8' });
-    slide.addText(card.title, { x: 0.8, y: 0.9, w: 11, fontSize: 24, bold: true, color: 'FFFFFF' });
+    slide.addText(card.title, { x: 0.8, y: 0.9, w: 11, fontSize: 22, bold: true, color: 'FFFFFF' });
 
-    // Grid Cards Export Layout
+    // Grid Layout
+    const boxWidth = 5.5;
     card.grid.forEach((g, idx) => {
-      const col = idx % 3;
-      const xPos = 0.8 + (col * 3.8);
-      const yPos = 2.2;
+      const col = idx % 2;
+      const row = Math.floor(idx / 2);
+      const xPos = 0.8 + (col * 5.9);
+      const yPos = 1.8 + (row * 2.6);
 
-      // Box background
+      // Card Box Background
       slide.addShape(pptx.shapes.ROUNDED_RECTANGLE, {
-        x: xPos, y: yPos, w: 3.5, h: 3.5,
-        fill: { color: '131B2E' },
-        line: { color: '2E3D5B', width: 1 },
+        x: xPos, y: yPos, w: boxWidth, h: 2.3,
+        fill: { color: '151C28' },
+        line: { color: '334155', width: 1 },
         rectRadius: 0.1
       });
 
-      slide.addText(g.title, { x: xPos + 0.2, y: yPos + 0.3, w: 3.1, fontSize: 16, bold: true, color: '818CF8' });
-      slide.addText(g.desc, { x: xPos + 0.2, y: yPos + 1.0, w: 3.1, h: 2.0, fontSize: 13, color: '94A3B8', valign: 'top' });
+      slide.addText(g.title, { x: xPos + 0.3, y: yPos + 0.2, w: boxWidth - 0.6, fontSize: 15, bold: true, color: '818CF8' });
+      
+      const bulletItems = g.items.map(it => ({ text: it, options: { breakLine: true, fontSize: 12, color: '94A3B8' } }));
+      slide.addText(bulletItems, { x: xPos + 0.3, y: yPos + 0.7, w: boxWidth - 0.6, h: 1.4, bullet: true, valign: 'top' });
     });
   });
 
-  pptx.writeFile({ fileName: 'Next_Gamma_Presentation.pptx' });
+  pptx.writeFile({ fileName: 'AI_Generated_Report.pptx' });
 }
 </script>
 
