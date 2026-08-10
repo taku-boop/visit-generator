@@ -15,7 +15,7 @@
   header{background:#111827;color:#fff;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
   header h1{font-size:17px;margin:0;font-weight:700;letter-spacing:.02em;}
   header .cfg{font-size:12px;color:#9ca3af;}
-  header input{background:#1f2937;border:1px solid #374151;color:#fff;border-radius:6px;padding:5px 8px;font-size:12px;width:340px;}
+  header input{background:#1f2937;border:1px solid #374151;color:#fff;border-radius:6px;padding:5px 8px;font-size:12px;width:260px;}
   main{max-width:1180px;margin:0 auto;padding:24px 20px 80px;}
   .panel{background:var(--panel);border-radius:12px;padding:20px 22px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
   .panel h2{font-size:14px;margin:0 0 12px;color:#374151;font-weight:700;display:flex;align-items:center;gap:6px;}
@@ -50,6 +50,22 @@
   .outline-item .oi-num{font-size:11px;color:var(--sub);font-weight:700;width:20px;flex-shrink:0;}
   .outline-item [contenteditable]{flex:1;font-size:13px;padding:2px 4px;border-radius:4px;}
   .outline-item [contenteditable]:hover{background:rgba(214,28,46,.06);}
+
+  /* ---- image layout inside stage ---- */
+  .stage-flex{display:flex;gap:6%;flex:1;min-height:0;}
+  .stage-col-text{flex:1 1 58%;display:flex;flex-direction:column;min-width:0;}
+  .stage-col-image{flex:1 1 36%;display:flex;align-items:center;justify-content:center;min-width:0;}
+  .stage-col-image img{width:100%;height:100%;object-fit:cover;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,.15);}
+  .tpl-navy .stage-flex{padding:0 7% 5%;}
+
+  /* ---- image controls panel (below each slide editor) ---- */
+  .img-panel{margin-top:12px;border-top:1px dashed var(--line);padding-top:12px;}
+  .img-panel textarea{width:100%;min-height:50px;font-size:12px;padding:8px;border:1px solid var(--line);border-radius:6px;font-family:inherit;}
+  .img-panel .img-row{display:flex;gap:12px;align-items:flex-start;margin-top:8px;}
+  .img-thumb{width:120px;height:80px;object-fit:cover;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,.15);flex-shrink:0;}
+  .img-actions{display:flex;flex-direction:column;gap:6px;flex:1;}
+  .img-edit-box{display:flex;gap:6px;}
+  .img-edit-box input{flex:1;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-size:12px;}
   .btn{border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;}
   .btn-primary{background:var(--ink);color:#fff;}
   .btn-primary:hover{background:#000;}
@@ -117,7 +133,7 @@
   <h1>📊 訪問資料ジェネレーター（β）</h1>
   <div class="cfg">
     GASエンドポイント：
-    <input id="gasUrl" value="https://script.google.com/macros/s/AKfycbwo1QaaBZBFz1BLw67gYDtUjhZ0KZjVef2te8uL4OT5yOMi4ke2axw02NbdbJ3fPGbi/exec">
+    <input id="gasUrl" placeholder="https://script.google.com/macros/s/.../exec（未設定なら簡易生成で動作）" value="https://script.google.com/macros/s/AKfycbyOipb0vQig0-kvdUU9x2FIuY0qrx39ViKjqv0NPpiF0tkaPzmsS87Tko2NgTs5PfBb/exec">
   </div>
 </header>
 
@@ -150,7 +166,7 @@
       </div>
       <div class="tpl-card co-card" data-co="crossdesign">
         <div class="name">クロスデザイン</div>
-        <div class="tagline">デザインで終わらせない、価値を生むプロダクトパートナー。意匠・筐体設計・CG/XRが刺さる相手向け。</div>
+        <div class="tagline">デザインで終わらせない、価値を生むプロダクト開発パートナー。意匠・筐体設計・CG/XRが刺さる相手向け。</div>
       </div>
       <div class="tpl-card co-card" data-co="crossmedical">
         <div class="name">クロスメディカル</div>
@@ -181,37 +197,10 @@
       <div style="min-width:140px;">
         <label style="font-size:11px;color:var(--sub);">カード枚数</label>
         <select id="cardCount" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;">
-          <option value="auto">おまかせ（4〜7枚）</option>
-          <option value="1">1枚</option>
-          <option value="2">2枚</option>
-          <option value="3">3枚</option>
-          <option value="4">4枚</option>
-          <option value="5" selected>5枚</option>
-          <option value="6">6枚</option>
+          <option value="auto" selected>おまかせ（4〜7枚）</option>
+          <option value="5">5枚</option>
           <option value="7">7枚</option>
-          <option value="8">8枚</option>
           <option value="9">9枚</option>
-          <option value="10">10枚</option>
-          <option value="11">11枚</option>
-          <option value="12">12枚</option>
-          <option value="13">13枚</option>
-          <option value="14">14枚</option>
-          <option value="15">15枚</option>
-          <option value="16">16枚</option>
-          <option value="17">17枚</option>
-          <option value="18">18枚</option>
-          <option value="19">19枚</option>
-          <option value="20">20枚</option>
-          <option value="21">21枚</option>
-          <option value="22">22枚</option>
-          <option value="23">23枚</option>
-          <option value="24">24枚</option>
-          <option value="25">25枚</option>
-          <option value="26">26枚</option>
-          <option value="27">27枚</option>
-          <option value="28">28枚</option>
-          <option value="29">29枚</option>
-          <option value="30">30枚</option>
         </select>
       </div>
       <div style="min-width:140px;">
@@ -298,15 +287,16 @@ const TEMPLATES = {
   'tpl-mono': { label:'ミニマル・モノクロ',   bg:'FFFFFF', accent:'111827', ink:'111827', sub:'6B7280', bodyText:'374151' }
 };
 
+// 各グループ会社の実際の事業内容・強み（AIへの要約指示のコンテキストにも使用）
 const COMPANIES = {
   crosseffect: {
     key:'crosseffect', name:'株式会社クロスエフェクト', short:'クロスエフェクト', tagShort:'CROSS EFFECT',
     tagline:'世界最速の開発支援企業',
-    facts:'2001年8月設立／京都市伏見区／代表 竹田正俊／事業内容：プロダクトデザイン・樹脂筐体設計、3Dスキャニング、光造形による3D開発試作、真空注型、小ロット生産、医療系ものづくり・臓器モデル・CTスキャンサービス。ミッションは「速さを追求し、世界の開発案件を支援」。アジャイル開発により開発期間を圧縮し、コスト低減・問題の早期発見・データでの手戻り対応を実現。クロスデザイン・クロスメディカルのグループ親会社。'
+    facts:'2001年8月設立／京都市伏見区／代表 竹田正俊／事業内容：プロダクトデザイン・樹脂筐体設計、3Dスキャニング、光造形による3D開発試作、真空注型、小ロット生産、医療系ものづくり・臓器モデル・CTスキャンサービス。ミッションは「速さを追求し、世界の開発案件を支援」。アジャイル開発により開発期間を圧縮し、コスト低減・問題の早期発見を実現。クロスデザイン・クロスメディカルのグループ親会社。'
   },
   crossdesign: {
     key:'crossdesign', name:'株式会社クロスデザイン', short:'クロスデザイン', tagShort:'CROSS DESIGN',
-    tagline:'デザインで終わらせない、価値を生むプロダクトパートナー',
+    tagline:'デザインで終わらせない、市場で価値を生むプロダクトまで創る',
     facts:'2022年6月設立／クロスエフェクトのグループ会社／事業内容：プロダクトデザイン、筐体設計、3Dモデリング、リバースエンジニアリング、CG動画制作、XR(VR)関連。Digital・Design・筐体設計（Mechanical）を融合し、構想から量産・価値化・進化までを一貫対応。Rapid Designによる高速デザインが強み。GOOD DESIGN賞受賞実績多数。'
   },
   crossmedical: {
@@ -333,16 +323,6 @@ function getGenControls(){
   };
 }
 
-async function fetchSafe(url, bodyData) {
-  return fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'text/plain;charset=utf-8'
-    },
-    body: JSON.stringify(bodyData)
-  });
-}
-
 // ---- template picker ----
 document.querySelectorAll('.tpl-card[data-tpl]').forEach(card=>{
   card.addEventListener('click', ()=>{
@@ -353,7 +333,7 @@ document.querySelectorAll('.tpl-card[data-tpl]').forEach(card=>{
   });
 });
 
-// ---- company picker ----
+// ---- company (group entity) picker ----
 document.querySelectorAll('.co-card').forEach(card=>{
   card.addEventListener('click', ()=>{
     document.querySelectorAll('.co-card').forEach(c=>c.classList.remove('active'));
@@ -373,7 +353,7 @@ document.querySelectorAll('.dt-card').forEach(card=>{
   });
 });
 
-// ---- Step 1: outline ----
+// ---- Step 1: outline (Gamma式 — 見出しだけ先に確認) ----
 document.getElementById('outlineBtn').addEventListener('click', createOutline);
 
 async function createOutline(){
@@ -384,13 +364,17 @@ async function createOutline(){
   const controls = getGenControls();
 
   if(!gasUrl){
-    statusEl.textContent = 'アウトライン機能はGAS連携（AI）が必要です。';
+    statusEl.textContent = 'アウトライン機能はGAS連携（AI）が必要です。簡易生成をご利用ください。';
     return;
   }
   statusEl.textContent = 'アウトライン作成中…';
   document.getElementById('outlineBtn').disabled = true;
   try{
-    const res = await fetchSafe(gasUrl, { mode:'outline', notes, companyKey: state.companyKey, docType: state.docType, ...controls });
+    const res = await fetch(gasUrl, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ mode:'outline', notes, companyKey: state.companyKey, docType: state.docType, ...controls })
+    });
     if(!res.ok) throw new Error('サーバーエラー ' + res.status);
     const data = await res.json();
     if(data.error) throw new Error(data.error);
@@ -452,7 +436,11 @@ async function expandOutline(){
   statusEl.textContent = '本文生成中…';
   document.getElementById('expandBtn').disabled = true;
   try{
-    const res = await fetchSafe(gasUrl, { mode:'expand', notes, outline: state.outline, companyKey: state.companyKey, docType: state.docType, ...controls });
+    const res = await fetch(gasUrl, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ mode:'expand', notes, outline: state.outline, companyKey: state.companyKey, docType: state.docType, ...controls })
+    });
     if(!res.ok) throw new Error('サーバーエラー ' + res.status);
     const data = await res.json();
     if(data.error) throw new Error(data.error);
@@ -475,7 +463,7 @@ function showResultSections(){
   document.getElementById('exportSection').style.display = 'block';
 }
 
-// ---- 直接生成 ----
+// ---- Step 1(代替): アウトラインをスキップして直接生成 ----
 document.getElementById('genBtn').addEventListener('click', generate);
 
 async function generate(){
@@ -493,7 +481,7 @@ async function generate(){
       slides = await generateViaGAS(notes, gasUrl, state.companyKey, state.docType, controls);
     }else{
       slides = fallbackGenerate(notes);
-      statusEl.textContent = 'GAS未設定のため簡易ロジックで生成しました。';
+      statusEl.textContent = 'GAS未設定のため簡易ロジックで生成しました（AI要約を使うにはREADME参照）。';
     }
     state.slides = slides;
     renderSlides();
@@ -508,33 +496,31 @@ async function generate(){
 }
 
 async function generateViaGAS(notes, url, companyKey, docType, controls){
-  const res = await fetchSafe(url, { mode:'generate', notes, companyKey, docType, ...controls });
+  const res = await fetch(url, {
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify({ mode:'generate', notes, companyKey, docType, ...controls })
+  });
   if(!res.ok) throw new Error('サーバーエラー ' + res.status);
   const data = await res.json();
   if(data.error) throw new Error(data.error);
   return data.slides;
 }
 
-// offline fallback
+// simple offline fallback: turns notes into a title slide + bullet slides
 function fallbackGenerate(notes){
   const lines = notes.split(/\n+/).map(l=>l.trim()).filter(Boolean);
   const co = COMPANIES[state.companyKey];
   const title = lines[0] ? lines[0].slice(0, 28) : `${co.short} 訪問記録`;
   const rest = lines.slice(1);
-  const controls = getGenControls();
-  
-  let targetCount = parseInt(controls.cardCount, 10);
-  if (isNaN(targetCount)) targetCount = Math.min(Math.max(lines.length, 4), 7);
-
+  const chunks = [];
+  for(let i=0;i<rest.length;i+=4){ chunks.push(rest.slice(i,i+4)); }
   const slides = [{ heading: title, subhead: `${new Date().toLocaleDateString('ja-JP')}｜${co.tagline}`, bullets: [], isTitle:true }];
-  
-  for(let i = 1; i < targetCount; i++) {
-    const chunkIndex = (i - 1) * 3;
-    const bullets = rest.slice(chunkIndex, chunkIndex + 3);
-    slides.push({
-      heading: i === 1 ? '概要・提案背景' : `提案詳細 (${i - 1})`,
-      subhead: '',
-      bullets: bullets.length ? bullets : ['詳細な内容をこちらに入力してください。']
+  if(chunks.length===0){
+    slides.push({ heading:'訪問メモ', subhead:'', bullets:[notes] });
+  }else{
+    chunks.forEach((c,i)=>{
+      slides.push({ heading: i===0 ? '訪問概要' : `補足 ${i}`, subhead:'', bullets:c });
     });
   }
   return slides;
@@ -560,9 +546,11 @@ function renderSlides(){
       <div class="stage ${state.template}">
         <div class="stage-inner" id="stage-${idx}"></div>
       </div>
+      <div class="img-panel" id="imgpanel-${idx}"></div>
     `;
     list.appendChild(card);
     renderStage(document.getElementById(`stage-${idx}`), s, idx);
+    renderImagePanel(document.getElementById(`imgpanel-${idx}`), s, idx);
   });
 
   list.querySelectorAll('.mini-btn').forEach(btn=>{
@@ -579,21 +567,25 @@ function renderSlides(){
 
 async function regenerateSlide(idx, btn){
   const gasUrl = document.getElementById('gasUrl').value.trim();
-  if(!gasUrl){ alert('この機能はGAS連携（AI）が必要です。'); return; }
+  if(!gasUrl){ alert('この機能はGAS連携（AI）が必要です。README参照。'); return; }
   const notes = document.getElementById('notesInput').value.trim();
   const controls = getGenControls();
   const original = btn.textContent;
   btn.textContent = '作り直し中…';
   btn.disabled = true;
   try{
-    const res = await fetchSafe(gasUrl, {
-      mode:'regenerate_slide',
-      notes,
-      companyKey: state.companyKey,
-      docType: state.docType,
-      heading: state.slides[idx].heading,
-      isTitle: !!state.slides[idx].isTitle,
-      ...controls
+    const res = await fetch(gasUrl, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({
+        mode:'regenerate_slide',
+        notes,
+        companyKey: state.companyKey,
+        docType: state.docType,
+        heading: state.slides[idx].heading,
+        isTitle: !!state.slides[idx].isTitle,
+        ...controls
+      })
     });
     if(!res.ok) throw new Error('サーバーエラー ' + res.status);
     const data = await res.json();
@@ -610,15 +602,20 @@ async function regenerateSlide(idx, btn){
 
 function renderStage(el, s, idx){
   const bulletsHtml = (s.bullets||[]).map(b=>`<li contenteditable="true" data-idx="${idx}" data-field="bullet">${escapeHtml(b)}</li>`).join('');
+  const imgHtml = s.image ? `<div class="stage-col-image"><img src="${s.image}" alt=""></div>` : '';
+
   if(state.template === 'tpl-navy'){
     el.innerHTML = `
       <div class="stage-headerbar">
         <div class="stage-badge">${String(idx+1).padStart(2,'0')}</div>
         <div class="stage-title" contenteditable="true" data-idx="${idx}" data-field="heading">${escapeHtml(s.heading||'')}</div>
       </div>
-      <div class="stage-body">
-        <div class="stage-sub" contenteditable="true" data-idx="${idx}" data-field="subhead">${escapeHtml(s.subhead||'')}</div>
-        <ul class="stage-bullets">${bulletsHtml}</ul>
+      <div class="stage-flex">
+        <div class="stage-col-text">
+          <div class="stage-sub" contenteditable="true" data-idx="${idx}" data-field="subhead">${escapeHtml(s.subhead||'')}</div>
+          <ul class="stage-bullets">${bulletsHtml}</ul>
+        </div>
+        ${imgHtml}
       </div>
       <div class="stage-foot">${escapeHtml(state.companyName)}</div>
     `;
@@ -629,9 +626,14 @@ function renderStage(el, s, idx){
       <div class="stage-title" contenteditable="true" data-idx="${idx}" data-field="heading">${escapeHtml(s.heading||'')}</div>
       <div class="stage-sub" contenteditable="true" data-idx="${idx}" data-field="subhead">${escapeHtml(s.subhead||'')}</div>
       <div class="stage-bar"></div>
-      <ul class="stage-bullets">${bulletsHtml}</ul>
+      <div class="stage-flex">
+        <div class="stage-col-text">
+          <ul class="stage-bullets">${bulletsHtml}</ul>
+        </div>
+        ${imgHtml}
+      </div>
       <div class="stage-foot">${escapeHtml(state.companyName)}</div>
-      ${state.template==='tpl-red' ? '<div class="stage-hex"></div>' : ''}
+      ${state.template==='tpl-red' && !s.image ? '<div class="stage-hex"></div>' : ''}
     `;
   }
   el.querySelectorAll('[contenteditable]').forEach(node=>{
@@ -650,6 +652,102 @@ function onEdit(e){
   }
 }
 
+// ---- image panel: generate / edit / delete per slide ----
+function suggestImagePrompt(s){
+  const bulletsPart = (s.bullets||[]).slice(0,2).join('、');
+  return `${s.heading || ''}${bulletsPart ? '。' + bulletsPart : ''}`.slice(0, 120);
+}
+
+function renderImagePanel(el, s, idx){
+  if(!s.image){
+    el.innerHTML = `
+      <textarea id="imgprompt-${idx}" placeholder="画像の内容（例：粉体成型機の外装デザインイメージ、白背景の製品写真風）">${escapeHtml(s.imagePrompt || suggestImagePrompt(s))}</textarea>
+      <div class="toolbar" style="margin-top:6px;">
+        <button class="btn btn-outline" data-act="gen-image" data-idx="${idx}">🖼 画像を生成</button>
+        <span class="status" id="imgstatus-${idx}"></span>
+      </div>
+    `;
+    el.querySelector('[data-act="gen-image"]').addEventListener('click', (e)=>generateImage(idx, e.target));
+  }else{
+    el.innerHTML = `
+      <div class="img-row">
+        <img class="img-thumb" src="${s.image}" alt="">
+        <div class="img-actions">
+          <div class="img-edit-box">
+            <input type="text" id="imgedit-${idx}" placeholder="編集の指示（例：背景を白に、もっと明るく、文字を消して）">
+            <button class="mini-btn" data-act="edit-image" data-idx="${idx}">編集する</button>
+          </div>
+          <div>
+            <button class="mini-btn" data-act="regen-image" data-idx="${idx}">↻ 作り直す</button>
+            <button class="mini-btn" data-act="del-image" data-idx="${idx}">画像を削除</button>
+          </div>
+          <span class="status" id="imgstatus-${idx}"></span>
+        </div>
+      </div>
+    `;
+    el.querySelector('[data-act="edit-image"]').addEventListener('click', (e)=>editImage(idx, e.target));
+    el.querySelector('[data-act="regen-image"]').addEventListener('click', (e)=>generateImage(idx, e.target, true));
+    el.querySelector('[data-act="del-image"]').addEventListener('click', ()=>{
+      delete state.slides[idx].image;
+      renderSlides();
+    });
+  }
+}
+
+async function generateImage(idx, btn, isRegen){
+  const gasUrl = document.getElementById('gasUrl').value.trim();
+  if(!gasUrl){ alert('画像生成はGAS連携（AI）が必要です。README参照。'); return; }
+  const promptEl = document.getElementById(`imgprompt-${idx}`);
+  const prompt = isRegen ? (state.slides[idx].imagePrompt || suggestImagePrompt(state.slides[idx])) : (promptEl.value.trim() || suggestImagePrompt(state.slides[idx]));
+  if(!prompt){ return; }
+  const statusEl = document.getElementById(`imgstatus-${idx}`);
+  statusEl.textContent = '生成中…（数十秒かかる場合があります）';
+  btn.disabled = true;
+  try{
+    const res = await fetch(gasUrl, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ mode:'generate_image', prompt, companyKey: state.companyKey, template: state.template })
+    });
+    if(!res.ok) throw new Error('サーバーエラー ' + res.status);
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+    state.slides[idx].image = data.image;
+    state.slides[idx].imagePrompt = prompt;
+    renderSlides();
+  }catch(e){
+    console.error(e);
+    statusEl.textContent = '画像生成に失敗しました：' + e.message;
+    btn.disabled = false;
+  }
+}
+
+async function editImage(idx, btn){
+  const gasUrl = document.getElementById('gasUrl').value.trim();
+  if(!gasUrl){ alert('画像編集はGAS連携（AI）が必要です。README参照。'); return; }
+  const instruction = document.getElementById(`imgedit-${idx}`).value.trim();
+  if(!instruction){ return; }
+  const statusEl = document.getElementById(`imgstatus-${idx}`);
+  statusEl.textContent = '編集中…';
+  btn.disabled = true;
+  try{
+    const res = await fetch(gasUrl, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ mode:'edit_image', image: state.slides[idx].image, instruction })
+    });
+    if(!res.ok) throw new Error('サーバーエラー ' + res.status);
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+    state.slides[idx].image = data.image;
+    renderSlides();
+  }catch(e){
+    console.error(e);
+    statusEl.textContent = '画像編集に失敗しました：' + e.message;
+    btn.disabled = false;
+  }
+}
+
 function escapeHtml(str){
   return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
@@ -659,7 +757,7 @@ document.getElementById('addSlideBtn').addEventListener('click', ()=>{
   renderSlides();
 });
 
-// ---- refine ----
+// ---- refine: additional instructions on top of the generated draft ----
 document.getElementById('refineBtn').addEventListener('click', refine);
 
 async function refine(){
@@ -667,17 +765,21 @@ async function refine(){
   const statusEl = document.getElementById('refineStatus');
   if(!instruction){ statusEl.textContent = '追加のお願いを入力してください。'; return; }
   const gasUrl = document.getElementById('gasUrl').value.trim();
-  if(!gasUrl){ statusEl.textContent = 'この機能はGAS連携（AI）が必要です。'; return; }
+  if(!gasUrl){ statusEl.textContent = 'この機能はGAS連携（AI）が必要です。README参照。'; return; }
 
   statusEl.textContent = '反映中…';
   document.getElementById('refineBtn').disabled = true;
   try{
-    const res = await fetchSafe(gasUrl, {
-      mode:'refine',
-      companyKey: state.companyKey,
-      docType: state.docType,
-      currentSlides: state.slides,
-      instruction
+    const res = await fetch(gasUrl, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({
+        mode:'refine',
+        companyKey: state.companyKey,
+        docType: state.docType,
+        currentSlides: state.slides,
+        instruction
+      })
     });
     if(!res.ok) throw new Error('サーバーエラー ' + res.status);
     const data = await res.json();
@@ -694,25 +796,29 @@ async function refine(){
   }
 }
 
-// ---- strict review ----
+// ---- strict pre-submission review ----
 document.getElementById('reviewBtn').addEventListener('click', runReview);
 
 async function runReview(){
   const statusEl = document.getElementById('reviewStatus');
   const resultEl = document.getElementById('reviewResult');
   const gasUrl = document.getElementById('gasUrl').value.trim();
-  if(!gasUrl){ statusEl.textContent = 'この機能はGAS連携（AI）が必要です。'; return; }
+  if(!gasUrl){ statusEl.textContent = 'この機能はGAS連携（AI）が必要です。README参照。'; return; }
   if(!state.slides.length){ statusEl.textContent = '先に資料を生成してください。'; return; }
 
   statusEl.textContent = 'チェック中…';
   resultEl.innerHTML = '';
   document.getElementById('reviewBtn').disabled = true;
   try{
-    const res = await fetchSafe(gasUrl, {
-      mode:'review',
-      companyKey: state.companyKey,
-      docType: state.docType,
-      slides: state.slides
+    const res = await fetch(gasUrl, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({
+        mode:'review',
+        companyKey: state.companyKey,
+        docType: state.docType,
+        slides: state.slides
+      })
     });
     if(!res.ok) throw new Error('サーバーエラー ' + res.status);
     const data = await res.json();
@@ -781,13 +887,17 @@ function exportPptx(){
       slide.addText(String(idx+1).padStart(2,'0'), { x:0.5, y:0.4, w:1, h:0.8, fontSize:24, bold:true, color:t.accent, fill:{color:'FFFFFF'}, align:'center', valign:'middle' });
       slide.addText(s.heading||'', { x:1.8, y:0.35, w:10.5, h:0.9, fontSize:28, bold:true, color:'FFFFFF', fontFace:'Meiryo' });
       if(s.subhead) slide.addText(s.subhead, { x:0.6, y:1.9, w:12, h:0.5, fontSize:14, bold:true, color:t.accent, fontFace:'Meiryo' });
-      addBullets(slide, s.bullets, 0.6, 2.5, 12, 4.3, t.bodyText);
+      const bulletW = s.image ? 7.4 : 12;
+      addBullets(slide, s.bullets, 0.6, 2.5, bulletW, 4.3, t.bodyText);
+      if(s.image) slide.addImage({ data:s.image, x:8.4, y:2.5, w:4.3, h:4.3, sizing:{ type:'cover', w:4.3, h:4.3 } });
     }else{
       slide.addText(`${COMPANIES[state.companyKey].tagShort} VISIT REPORT`, { x:0.6, y:0.4, w:8, h:0.35, fontSize:10, bold:true, color:t.accent, charSpacing:2, fontFace:'Meiryo' });
       slide.addText(s.heading||'', { x:0.6, y:0.75, w:11.8, h:1.1, fontSize:30, bold:true, color:t.ink, fontFace:'Meiryo' });
       if(s.subhead) slide.addText(s.subhead, { x:0.6, y:1.75, w:11.5, h:0.4, fontSize:13, color:t.sub, fontFace:'Meiryo' });
       slide.addShape('rect', { x:0.6, y:2.25, w:0.5, h:0.06, fill:{color:t.accent} });
-      addBullets(slide, s.bullets, 0.6, 2.6, 11.8, 4.0, t.bodyText, t.accent);
+      const bulletW = s.image ? 7.0 : 11.8;
+      addBullets(slide, s.bullets, 0.6, 2.6, bulletW, 4.0, t.bodyText, t.accent);
+      if(s.image) slide.addImage({ data:s.image, x:8.2, y:2.6, w:4.5, h:4.0, sizing:{ type:'cover', w:4.5, h:4.0 } });
       slide.addText(state.companyName, { x:10.5, y:7.05, w:2.4, h:0.3, fontSize:8, color:'9CA3AF', align:'right' });
     }
   });
@@ -801,7 +911,7 @@ function addBullets(slide, bullets, x,y,w,h, color, bulletColor){
   slide.addText(items, { x,y,w,h, valign:'top' });
 }
 
-// ---- export: PDF ----
+// ---- export: PDF (print) ----
 document.getElementById('exportPdfBtn').addEventListener('click', ()=>{
   const area = document.getElementById('printArea');
   area.innerHTML = '';
