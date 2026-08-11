@@ -66,6 +66,10 @@
   .img-actions{display:flex;flex-direction:column;gap:6px;flex:1;}
   .img-edit-box{display:flex;gap:6px;}
   .img-edit-box input{flex:1;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-size:12px;}
+  .img-results{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+  .img-result{width:90px;height:60px;border-radius:6px;overflow:hidden;cursor:pointer;border:2px solid transparent;}
+  .img-result:hover{border-color:var(--accent);}
+  .img-result img{width:100%;height:100%;object-fit:cover;display:block;}
   .btn{border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;}
   .btn-primary{background:var(--ink);color:#fff;}
   .btn-primary:hover{background:#000;}
@@ -193,6 +197,7 @@
       </div>
     </div>
     <div class="section-label">生成コントロール</div>
+    <p style="font-size:11px;color:var(--sub);margin:0 0 6px;">※10枚を超える場合は数枚ずつAIに分けて生成するため、時間が長めにかかります（30枚が上限）。</p>
     <div class="row" style="align-items:flex-end;">
       <div style="min-width:140px;">
         <label style="font-size:11px;color:var(--sub);">カード枚数</label>
@@ -201,6 +206,11 @@
           <option value="5">5枚</option>
           <option value="7">7枚</option>
           <option value="9">9枚</option>
+          <option value="12">12枚</option>
+          <option value="15">15枚</option>
+          <option value="20">20枚</option>
+          <option value="25">25枚</option>
+          <option value="30">30枚（上限）</option>
         </select>
       </div>
       <div style="min-width:140px;">
@@ -426,25 +436,40 @@ document.getElementById('outlineAddBtn').addEventListener('click', ()=>{
 
 document.getElementById('expandBtn').addEventListener('click', expandOutline);
 
+const EXPAND_BATCH_SIZE = 8;
+
 async function expandOutline(){
   const notes = document.getElementById('notesInput').value.trim();
   const statusEl = document.getElementById('outlineStatus');
   const gasUrl = document.getElementById('gasUrl').value.trim();
   const controls = getGenControls();
   if(!state.outline.length){ statusEl.textContent = 'アウトラインが空です。'; return; }
+  if(state.outline.length > 30){ statusEl.textContent = 'アウトラインは30枚以内にしてください。'; return; }
 
-  statusEl.textContent = '本文生成中…';
   document.getElementById('expandBtn').disabled = true;
   try{
-    const res = await fetch(gasUrl, {
-      method:'POST',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({ mode:'expand', notes, outline: state.outline, companyKey: state.companyKey, docType: state.docType, ...controls })
-    });
-    if(!res.ok) throw new Error('サーバーエラー ' + res.status);
-    const data = await res.json();
-    if(data.error) throw new Error(data.error);
-    state.slides = data.slides;
+    const batches = [];
+    for(let i=0; i<state.outline.length; i+=EXPAND_BATCH_SIZE){
+      batches.push(state.outline.slice(i, i+EXPAND_BATCH_SIZE));
+    }
+    let allSlides = [];
+    for(let b=0; b<batches.length; b++){
+      if(batches.length > 1){
+        statusEl.textContent = `本文生成中…（${Math.min((b+1)*EXPAND_BATCH_SIZE, state.outline.length)}/${state.outline.length}枚）`;
+      }else{
+        statusEl.textContent = '本文生成中…';
+      }
+      const res = await fetch(gasUrl, {
+        method:'POST',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify({ mode:'expand', notes, outline: batches[b], companyKey: state.companyKey, docType: state.docType, ...controls })
+      });
+      if(!res.ok) throw new Error('サーバーエラー ' + res.status);
+      const data = await res.json();
+      if(data.error) throw new Error(data.error);
+      allSlides = allSlides.concat(data.slides);
+    }
+    state.slides = allSlides;
     renderSlides();
     showResultSections();
     statusEl.textContent = '生成完了。内容を確認・編集してください。';
@@ -472,6 +497,10 @@ async function generate(){
   if(!notes){ statusEl.textContent = 'プロンプトを入力してください。'; return; }
   const gasUrl = document.getElementById('gasUrl').value.trim();
   const controls = getGenControls();
+  if(controls.cardCount !== 'auto' && parseInt(controls.cardCount, 10) > 12){
+    statusEl.textContent = '12枚を超える場合は品質確保のため「①まずアウトラインを作成」から生成してください（数枚ずつ分けて生成します）。';
+    return;
+  }
   statusEl.textContent = '生成中…';
   document.getElementById('genBtn').disabled = true;
 
@@ -661,90 +690,93 @@ function suggestImagePrompt(s){
 function renderImagePanel(el, s, idx){
   if(!s.image){
     el.innerHTML = `
-      <textarea id="imgprompt-${idx}" placeholder="画像の内容（例：粉体成型機の外装デザインイメージ、白背景の製品写真風）">${escapeHtml(s.imagePrompt || suggestImagePrompt(s))}</textarea>
+      <input type="text" id="imgquery-${idx}" placeholder="検索キーワード（例：industrial machine white background）" value="${escapeHtml(s.imageQuery || suggestImagePrompt(s))}" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;font-size:12px;">
       <div class="toolbar" style="margin-top:6px;">
-        <button class="btn btn-outline" data-act="gen-image" data-idx="${idx}">🖼 画像を生成</button>
+        <button class="btn btn-outline" data-act="search-image" data-idx="${idx}">🔍 無料写真を検索（Unsplash）</button>
         <span class="status" id="imgstatus-${idx}"></span>
       </div>
+      <div class="img-results" id="imgresults-${idx}"></div>
     `;
-    el.querySelector('[data-act="gen-image"]').addEventListener('click', (e)=>generateImage(idx, e.target));
+    el.querySelector('[data-act="search-image"]').addEventListener('click', (e)=>searchImage(idx, e.target));
   }else{
+    const credit = s.imageCredit;
     el.innerHTML = `
       <div class="img-row">
         <img class="img-thumb" src="${s.image}" alt="">
         <div class="img-actions">
-          <div class="img-edit-box">
-            <input type="text" id="imgedit-${idx}" placeholder="編集の指示（例：背景を白に、もっと明るく、文字を消して）">
-            <button class="mini-btn" data-act="edit-image" data-idx="${idx}">編集する</button>
-          </div>
+          ${credit ? `<div style="font-size:11px;color:var(--sub);">Photo: <a href="${credit.profileUrl}?utm_source=visit_generator&utm_medium=referral" target="_blank" rel="noopener">${escapeHtml(credit.name)}</a> / <a href="https://unsplash.com/?utm_source=visit_generator&utm_medium=referral" target="_blank" rel="noopener">Unsplash</a></div>` : ''}
           <div>
-            <button class="mini-btn" data-act="regen-image" data-idx="${idx}">↻ 作り直す</button>
+            <button class="mini-btn" data-act="research-image" data-idx="${idx}">🔍 別の写真を探す</button>
             <button class="mini-btn" data-act="del-image" data-idx="${idx}">画像を削除</button>
           </div>
           <span class="status" id="imgstatus-${idx}"></span>
         </div>
       </div>
     `;
-    el.querySelector('[data-act="edit-image"]').addEventListener('click', (e)=>editImage(idx, e.target));
-    el.querySelector('[data-act="regen-image"]').addEventListener('click', (e)=>generateImage(idx, e.target, true));
+    el.querySelector('[data-act="research-image"]').addEventListener('click', ()=>{
+      delete state.slides[idx].image;
+      delete state.slides[idx].imageCredit;
+      renderSlides();
+    });
     el.querySelector('[data-act="del-image"]').addEventListener('click', ()=>{
       delete state.slides[idx].image;
+      delete state.slides[idx].imageCredit;
       renderSlides();
     });
   }
 }
 
-async function generateImage(idx, btn, isRegen){
+async function searchImage(idx, btn){
   const gasUrl = document.getElementById('gasUrl').value.trim();
-  if(!gasUrl){ alert('画像生成はGAS連携（AI）が必要です。README参照。'); return; }
-  const promptEl = document.getElementById(`imgprompt-${idx}`);
-  const prompt = isRegen ? (state.slides[idx].imagePrompt || suggestImagePrompt(state.slides[idx])) : (promptEl.value.trim() || suggestImagePrompt(state.slides[idx]));
-  if(!prompt){ return; }
+  if(!gasUrl){ alert('画像検索はGAS連携が必要です。README参照。'); return; }
+  const query = document.getElementById(`imgquery-${idx}`).value.trim() || suggestImagePrompt(state.slides[idx]);
   const statusEl = document.getElementById(`imgstatus-${idx}`);
-  statusEl.textContent = '生成中…（数十秒かかる場合があります）';
+  const resultsEl = document.getElementById(`imgresults-${idx}`);
+  statusEl.textContent = '検索中…';
   btn.disabled = true;
   try{
     const res = await fetch(gasUrl, {
       method:'POST',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({ mode:'generate_image', prompt, companyKey: state.companyKey, template: state.template })
+      body: JSON.stringify({ mode:'search_image', query })
     });
     if(!res.ok) throw new Error('サーバーエラー ' + res.status);
     const data = await res.json();
     if(data.error) throw new Error(data.error);
-    state.slides[idx].image = data.image;
-    state.slides[idx].imagePrompt = prompt;
-    renderSlides();
+    state.slides[idx].imageQuery = query;
+    renderImageResults(resultsEl, data.results || [], idx);
+    statusEl.textContent = data.results && data.results.length ? `${data.results.length}件見つかりました。クリックして選んでください。` : '該当する写真が見つかりませんでした。キーワードを変えてみてください。';
   }catch(e){
     console.error(e);
-    statusEl.textContent = '画像生成に失敗しました：' + e.message;
+    statusEl.textContent = '検索に失敗しました：' + e.message;
+  }finally{
     btn.disabled = false;
   }
 }
 
-async function editImage(idx, btn){
+function renderImageResults(el, results, idx){
+  el.innerHTML = results.map((r,i)=>`
+    <div class="img-result" data-i="${i}">
+      <img src="${r.thumbUrl}" alt="">
+    </div>
+  `).join('');
+  el.querySelectorAll('.img-result').forEach(node=>{
+    node.addEventListener('click', ()=>selectImage(idx, results[+node.dataset.i]));
+  });
+}
+
+async function selectImage(idx, photo){
+  state.slides[idx].image = photo.fullUrl;
+  state.slides[idx].imageCredit = { name: photo.photographerName, profileUrl: photo.photographerUrl };
+  renderSlides();
+  // Unsplash APIガイドライン: 実際に使用した写真はダウンロードイベントとして通知する
   const gasUrl = document.getElementById('gasUrl').value.trim();
-  if(!gasUrl){ alert('画像編集はGAS連携（AI）が必要です。README参照。'); return; }
-  const instruction = document.getElementById(`imgedit-${idx}`).value.trim();
-  if(!instruction){ return; }
-  const statusEl = document.getElementById(`imgstatus-${idx}`);
-  statusEl.textContent = '編集中…';
-  btn.disabled = true;
-  try{
-    const res = await fetch(gasUrl, {
+  if(gasUrl && photo.downloadLocation){
+    fetch(gasUrl, {
       method:'POST',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({ mode:'edit_image', image: state.slides[idx].image, instruction })
-    });
-    if(!res.ok) throw new Error('サーバーエラー ' + res.status);
-    const data = await res.json();
-    if(data.error) throw new Error(data.error);
-    state.slides[idx].image = data.image;
-    renderSlides();
-  }catch(e){
-    console.error(e);
-    statusEl.textContent = '画像編集に失敗しました：' + e.message;
-    btn.disabled = false;
+      body: JSON.stringify({ mode:'track_download', downloadLocation: photo.downloadLocation })
+    }).catch(()=>{ /* 失敗しても致命的ではないので無視 */ });
   }
 }
 
@@ -872,37 +904,79 @@ function renderReview(r){
 // ---- export: PPTX ----
 document.getElementById('exportPptxBtn').addEventListener('click', exportPptx);
 
-function exportPptx(){
-  const t = TEMPLATES[state.template];
-  const pptx = new PptxGenJS();
-  pptx.defineLayout({ name:'WIDE', width:13.333, height:7.5 });
-  pptx.layout = 'WIDE';
-
-  state.slides.forEach((s, idx)=>{
-    const slide = pptx.addSlide();
-    slide.background = { color: t.bg };
-
-    if(state.template === 'tpl-navy'){
-      slide.addShape('rect', { x:0, y:0, w:13.333, h:1.6, fill:{color:t.accent} });
-      slide.addText(String(idx+1).padStart(2,'0'), { x:0.5, y:0.4, w:1, h:0.8, fontSize:24, bold:true, color:t.accent, fill:{color:'FFFFFF'}, align:'center', valign:'middle' });
-      slide.addText(s.heading||'', { x:1.8, y:0.35, w:10.5, h:0.9, fontSize:28, bold:true, color:'FFFFFF', fontFace:'Meiryo' });
-      if(s.subhead) slide.addText(s.subhead, { x:0.6, y:1.9, w:12, h:0.5, fontSize:14, bold:true, color:t.accent, fontFace:'Meiryo' });
-      const bulletW = s.image ? 7.4 : 12;
-      addBullets(slide, s.bullets, 0.6, 2.5, bulletW, 4.3, t.bodyText);
-      if(s.image) slide.addImage({ data:s.image, x:8.4, y:2.5, w:4.3, h:4.3, sizing:{ type:'cover', w:4.3, h:4.3 } });
-    }else{
-      slide.addText(`${COMPANIES[state.companyKey].tagShort} VISIT REPORT`, { x:0.6, y:0.4, w:8, h:0.35, fontSize:10, bold:true, color:t.accent, charSpacing:2, fontFace:'Meiryo' });
-      slide.addText(s.heading||'', { x:0.6, y:0.75, w:11.8, h:1.1, fontSize:30, bold:true, color:t.ink, fontFace:'Meiryo' });
-      if(s.subhead) slide.addText(s.subhead, { x:0.6, y:1.75, w:11.5, h:0.4, fontSize:13, color:t.sub, fontFace:'Meiryo' });
-      slide.addShape('rect', { x:0.6, y:2.25, w:0.5, h:0.06, fill:{color:t.accent} });
-      const bulletW = s.image ? 7.0 : 11.8;
-      addBullets(slide, s.bullets, 0.6, 2.6, bulletW, 4.0, t.bodyText, t.accent);
-      if(s.image) slide.addImage({ data:s.image, x:8.2, y:2.6, w:4.5, h:4.0, sizing:{ type:'cover', w:4.5, h:4.0 } });
-      slide.addText(state.companyName, { x:10.5, y:7.05, w:2.4, h:0.3, fontSize:8, color:'9CA3AF', align:'right' });
-    }
+async function urlToDataUri(url){
+  if(url.startsWith('data:')) return url;
+  const res = await fetch(url);
+  const blob = await res.blob();
+  return await new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=>resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
   });
+}
 
-  pptx.writeFile({ fileName: buildFileName('pptx') });
+async function exportPptx(){
+  const btn = document.getElementById('exportPptxBtn');
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '書き出し準備中…';
+  try{
+    const t = TEMPLATES[state.template];
+    const pptx = new PptxGenJS();
+    pptx.defineLayout({ name:'WIDE', width:13.333, height:7.5 });
+    pptx.layout = 'WIDE';
+
+    // 画像URLを先にすべてbase64へ変換しておく（pptxgenjsはリモートURLより確実）
+    const imageData = {};
+    for(let idx=0; idx<state.slides.length; idx++){
+      const s = state.slides[idx];
+      if(s.image){
+        try{ imageData[idx] = await urlToDataUri(s.image); }
+        catch(e){ console.error('image fetch failed', e); }
+      }
+    }
+
+    state.slides.forEach((s, idx)=>{
+      const slide = pptx.addSlide();
+      slide.background = { color: t.bg };
+      const imgSrc = imageData[idx];
+      const credit = s.imageCredit;
+
+      if(state.template === 'tpl-navy'){
+        slide.addShape('rect', { x:0, y:0, w:13.333, h:1.6, fill:{color:t.accent} });
+        slide.addText(String(idx+1).padStart(2,'0'), { x:0.5, y:0.4, w:1, h:0.8, fontSize:24, bold:true, color:t.accent, fill:{color:'FFFFFF'}, align:'center', valign:'middle' });
+        slide.addText(s.heading||'', { x:1.8, y:0.35, w:10.5, h:0.9, fontSize:28, bold:true, color:'FFFFFF', fontFace:'Meiryo' });
+        if(s.subhead) slide.addText(s.subhead, { x:0.6, y:1.9, w:12, h:0.5, fontSize:14, bold:true, color:t.accent, fontFace:'Meiryo' });
+        const bulletW = imgSrc ? 7.4 : 12;
+        addBullets(slide, s.bullets, 0.6, 2.5, bulletW, 4.3, t.bodyText);
+        if(imgSrc){
+          slide.addImage({ data:imgSrc, x:8.4, y:2.5, w:4.3, h:4.3, sizing:{ type:'cover', w:4.3, h:4.3 } });
+          if(credit) slide.addText(`Photo: ${credit.name} / Unsplash`, { x:8.4, y:6.75, w:4.3, h:0.25, fontSize:7, color:'9CA3AF' });
+        }
+      }else{
+        slide.addText(`${COMPANIES[state.companyKey].tagShort} VISIT REPORT`, { x:0.6, y:0.4, w:8, h:0.35, fontSize:10, bold:true, color:t.accent, charSpacing:2, fontFace:'Meiryo' });
+        slide.addText(s.heading||'', { x:0.6, y:0.75, w:11.8, h:1.1, fontSize:30, bold:true, color:t.ink, fontFace:'Meiryo' });
+        if(s.subhead) slide.addText(s.subhead, { x:0.6, y:1.75, w:11.5, h:0.4, fontSize:13, color:t.sub, fontFace:'Meiryo' });
+        slide.addShape('rect', { x:0.6, y:2.25, w:0.5, h:0.06, fill:{color:t.accent} });
+        const bulletW = imgSrc ? 7.0 : 11.8;
+        addBullets(slide, s.bullets, 0.6, 2.6, bulletW, 4.0, t.bodyText, t.accent);
+        if(imgSrc){
+          slide.addImage({ data:imgSrc, x:8.2, y:2.6, w:4.5, h:4.0, sizing:{ type:'cover', w:4.5, h:4.0 } });
+          if(credit) slide.addText(`Photo: ${credit.name} / Unsplash`, { x:8.2, y:6.65, w:4.5, h:0.25, fontSize:7, color:'9CA3AF' });
+        }
+        slide.addText(state.companyName, { x:10.5, y:7.05, w:2.4, h:0.3, fontSize:8, color:'9CA3AF', align:'right' });
+      }
+    });
+
+    await pptx.writeFile({ fileName: buildFileName('pptx') });
+  }catch(e){
+    console.error(e);
+    alert('PPTX書き出しに失敗しました：' + e.message);
+  }finally{
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
 }
 
 function addBullets(slide, bullets, x,y,w,h, color, bulletColor){
